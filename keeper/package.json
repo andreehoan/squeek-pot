@@ -1,0 +1,17 @@
+{
+  "name": "squeek-pot-keeper",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker cron keeper that runs the Squeek Pot daily draw (requestDraw + settleDraw).",
+  "dependencies": {
+    "ethers": "6.13.4"
+  },
+  "devDependencies": {
+    "wrangler": "3.90.0"
+  },
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --test-scheduled",
+    "tail": "wrangler tail"
+  }
+}

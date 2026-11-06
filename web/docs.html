@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Squeek Pot · Docs</title>
+<meta name="description" content="How Squeek Pot works: a no-loss SQK lottery on Squeekchain. Deposit, keep your SQK forever, win the daily prize. Chainlink VRF 2.5, provably fair." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    color-scheme: dark;
+    --bg:#070210; --bg2:#0e0622;
+    --ink:#f2fff6; --muted:#b29ce0; --dim:#7a67a0;
+    --green:#4dff7a; --mag:#ff3cb6; --cyan:#3ae6ff; --amber:#ffd24a; --violet:#a46bff;
+    --panel-edge:#43286f; --line:#271a42;
+    --font-display:'Press Start 2P', ui-monospace, monospace;
+    --font-term:'VT323', 'Press Start 2P', ui-monospace, monospace;
+    --glow-g:0 0 16px rgba(77,255,122,.6);
+    --glow-m:0 0 16px rgba(255,60,182,.6);
+    --glow-c:0 0 16px rgba(58,230,255,.55);
+    --glow-a:0 0 18px rgba(255,210,74,.55);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    min-height:100vh; background:radial-gradient(130% 100% at 50% -10%, #130a2c 0%, var(--bg) 55%, #04010a 100%);
+    color:var(--ink); font-family:var(--font-term); font-size:20px; line-height:1.4;
+    overflow-x:hidden; position:relative; -webkit-font-smoothing:none;
+    padding:0 max(16px, env(safe-area-inset-left,0px)) 40px max(16px, env(safe-area-inset-right,0px));
+  }
+  a{color:var(--cyan);text-decoration:none;border-bottom:1px dotted rgba(58,230,255,.4)}
+  a:hover{color:var(--amber);border-bottom-color:rgba(255,210,74,.5)}
+  /* CRT overlays */
+  .crt{position:fixed;inset:0;pointer-events:none;z-index:2}
+  .crt.lines{background:repeating-linear-gradient(0deg,rgba(0,0,0,.20) 0,rgba(0,0,0,.20) 1px,transparent 2px,transparent 3px);mix-blend-mode:multiply;opacity:.6}
+  .crt.vig{background:radial-gradient(130% 95% at 50% 12%,transparent 52%,rgba(2,0,8,.7) 100%)}
+
+  .wrap{position:relative;z-index:3;max-width:860px;margin:0 auto;padding-block:20px 10px}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+  .ham{width:52px;height:auto;filter:drop-shadow(0 0 10px rgba(255,210,74,.5));animation:bob 1.1s steps(2) infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .word{font-family:var(--font-display);font-size:17px;line-height:1.25;color:var(--green);
+    text-shadow:2px 2px 0 #0a3d12, var(--glow-g);letter-spacing:1px}
+  .word small{display:block;font-family:var(--font-term);font-size:15px;letter-spacing:3px;color:var(--mag);
+    text-shadow:var(--glow-m);margin-top:3px}
+  .navlinks{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font-family:var(--font-display);font-size:8px;padding:9px 11px;border:2px solid var(--line);color:var(--dim);
+    border-radius:3px;white-space:nowrap;border-bottom-width:2px}
+  .chip:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:var(--glow-c)}
+  .chip.play{color:var(--green);border-color:var(--green);box-shadow:var(--glow-g)}
+
+  /* panels */
+  .panel{position:relative;
+    background:linear-gradient(158deg, rgba(32,17,60,.80), rgba(11,5,27,.86));
+    border:2px solid var(--panel-edge);border-radius:4px;
+    box-shadow:0 0 0 1px #000, inset 0 0 26px rgba(164,107,255,.10), 0 16px 44px rgba(0,0,0,.6);
+    backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+    padding:20px 20px 22px;margin-bottom:18px}
+  .panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;pointer-events:none}
+  .panel::before{top:-2px;left:-2px;border-top:3px solid var(--cyan);border-left:3px solid var(--cyan);box-shadow:var(--glow-c)}
+  .panel::after{bottom:-2px;right:-2px;border-bottom:3px solid var(--mag);border-right:3px solid var(--mag);box-shadow:var(--glow-m)}
+
+  h2{font-family:var(--font-display);font-size:13px;letter-spacing:1px;color:var(--amber);
+    text-shadow:0 0 12px rgba(255,210,74,.35);margin:0 0 14px;line-height:1.5}
+  h2 .num{color:var(--mag);margin-right:9px;text-shadow:var(--glow-m)}
+  h3{font-family:var(--font-display);font-size:10px;letter-spacing:1px;color:var(--cyan);margin:18px 0 8px}
+  p{margin:0 0 12px;color:var(--muted);line-height:1.6}
+  p:last-child{margin-bottom:0}
+  b,strong{color:var(--green)}
+  em{color:var(--amber);font-style:normal}
+  .lead{color:var(--ink);font-size:22px}
+
+  ul{margin:0 0 12px;padding-left:4px;list-style:none}
+  li{color:var(--muted);line-height:1.55;margin-bottom:9px;padding-left:24px;position:relative}
+  li::before{content:"▸";position:absolute;left:4px;color:var(--mag);text-shadow:var(--glow-m)}
+  li b{color:var(--green)}
+
+  .mono{font-family:var(--font-display);font-size:11px}
+  code{font-family:var(--font-display);font-size:11px;color:var(--cyan);background:#06030f;
+    border:1px solid var(--line);border-radius:3px;padding:2px 6px;word-break:break-all}
+
+  /* callout */
+  .note{border:2px dashed var(--panel-edge);border-radius:4px;padding:14px 16px;margin:14px 0;
+    background:rgba(58,230,255,.04)}
+  .note .tag{font-family:var(--font-display);font-size:9px;color:var(--cyan);letter-spacing:1px;display:block;margin-bottom:7px}
+  .note.warn{border-color:#5a4a2a;background:rgba(255,210,74,.05)}
+  .note.warn .tag{color:var(--amber)}
+
+  /* key/value address table */
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:baseline;margin:6px 0}
+  .kv dt{font-family:var(--font-display);font-size:9px;color:var(--dim);letter-spacing:1px;white-space:nowrap;padding-top:3px}
+  .kv dd{margin:0;font-family:var(--font-display);font-size:11px;color:var(--cyan);word-break:break-all}
+  @media(max-width:560px){.kv{grid-template-columns:1fr}.kv dt{padding-top:10px}}
+
+  /* mini odds table */
+  .tbl{width:100%;border-collapse:collapse;margin:8px 0 4px;font-family:var(--font-term);font-size:18px}
+  .tbl th{font-family:var(--font-display);font-size:9px;color:var(--dim);text-align:left;padding:7px 8px;border-bottom:2px solid var(--line);letter-spacing:1px}
+  .tbl td{padding:8px;border-bottom:1px solid #160d28;color:var(--muted)}
+  .tbl td b{color:var(--amber)}
+
+  .foot{font-family:var(--font-term);font-size:16px;color:var(--dim);text-align:center;margin-top:26px;line-height:1.9;letter-spacing:1px}
+  .foot .links{display:flex;gap:6px 14px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+  .foot .links a{font-family:var(--font-display);font-size:9px;letter-spacing:1px;border-bottom:none}
+  .disc{font-size:15px;color:#5a4d7c;max-width:600px;margin:10px auto 0;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="crt vig"></div>
+<div class="crt lines"></div>
+
+<div class="wrap">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand">
+      <img class="ham" src="hamster-logo.webp" alt="Squeek Pot" />
+      <div class="word">SQUEEK POT<small>DOCS</small></div>
+    </div>
+    <div class="navlinks">
+      <a class="chip play" href="index.html">▶ PLAY</a>
+      <a class="chip" href="https://x.com/andreehoan" target="_blank" rel="noopener">X</a>
+      <!-- DISCORD: drop the invite link in here, e.g. href="https://discord.gg/XXXXX" -->
+    </div>
+  </div>
+
+  <!-- 1 · WHAT IT IS -->
+  <div class="panel">
+    <h2><span class="num">01</span>What is Squeek Pot?</h2>
+    <p class="lead">A <b>no-loss lottery</b> for SQK. Deposit, and your SQK stays <em>100% yours</em> — withdraw every token whenever you want. While it sits in the pot, your deposit size is your odds of winning a prize that's drawn once a day.</p>
+    <p>You can't lose your deposit. The only thing ever paid out is a <b>separate prize pot</b> that sponsors seed — never your principal, and never anyone else's. Win or lose, you keep what you put in.</p>
+    <p>The winner each day is picked by <b>Chainlink VRF 2.5</b> — on-chain, provably-fair randomness that nobody (not even the team) can predict or rig.</p>
+  </div>
+
+  <!-- 2 · HOW TO PLAY -->
+  <div class="panel">
+    <h2><span class="num">02</span>How to play</h2>
+    <ul>
+      <li><b>Connect</b> your wallet on <em>Ethereum Sepolia</em> (testnet).</li>
+      <li><b>Deposit SQK.</b> Approve once, then deposit. Minimum position is <b>1 SQK</b>. Your balance = your tickets.</li>
+      <li><b>Wait for the daily draw.</b> Every 24 hours the wheel spins and one depositor wins the whole prize pot.</li>
+      <li><b>Withdraw anytime.</b> Pull out any amount, in full — even while the game is paused or a draw is mid-flight. A partial withdrawal must leave either nothing or at least 1 SQK behind.</li>
+    </ul>
+    <div class="note">
+      <span class="tag">WHO FUNDS THE PRIZE?</span>
+      The prize is <b>seeded</b> — anyone can top it up by calling <code>fundPrize</code>. It is <em>never</em> taken from deposits. A future, separately-audited version can route Squeekchain staking yield into the prize automatically; deposits stay 100% withdrawable either way.
+    </div>
+  </div>
+
+  <!-- 3 · YOUR ODDS -->
+  <div class="panel">
+    <h2><span class="num">03</span>Your odds</h2>
+    <p>Odds are simply your share of all deposits:</p>
+    <p class="mono" style="color:var(--amber);text-align:center;margin:10px 0">win chance = your deposit ÷ total deposits</p>
+    <p>Deposit more, get more tickets. There's no edge from splitting across wallets — 100 SQK in one wallet or across ten wallets is the same total weight. The live odds shown in the app are your raw deposit share; if you hold a Genesis NFT your <em>real</em> draw weight is higher (next section).</p>
+    <table class="tbl">
+      <tr><th>You deposit</th><th>Others in pot</th><th>Your chance</th></tr>
+      <tr><td>100 SQK</td><td>100 SQK</td><td><b>50%</b></td></tr>
+      <tr><td>100 SQK</td><td>400 SQK</td><td><b>20%</b></td></tr>
+      <tr><td>100 SQK</td><td>900 SQK</td><td><b>10%</b></td></tr>
+    </table>
+    <p class="hint" style="color:var(--dim);font-size:16px">Up to 500 players can be in the pot at once.</p>
+  </div>
+
+  <!-- 4 · NFT BOOST -->
+  <div class="panel">
+    <h2><span class="num">04</span>Genesis NFT boost</h2>
+    <p>Hold at least one <b>Squeek Genesis NFT</b> and your ticket weight is multiplied by <em>1.2 (+20%)</em> when the draw takes its snapshot. One NFT is enough — holding more doesn't stack.</p>
+    <ul>
+      <li><b>Fixed &amp; equal.</b> Every holder gets the same +20%. It's immutable — baked in at deploy, nobody can crank it, not even the owner.</li>
+      <li><b>Still no-loss.</b> The boost only changes the <em>odds weighting</em>. Your deposit is as safe and withdrawable as anyone's.</li>
+      <li><b>Can't be gamed.</b> The boost multiplies <em>your</em> deposit, so splitting SQK across many NFT wallets gives no extra edge.</li>
+      <li><b>A nudge, not a trump card.</b> +20% is bounded — a bigger non-holder deposit still beats a small holder. Money dominates; the NFT tilts a close race.</li>
+    </ul>
+    <div class="note">
+      <span class="tag">HOW BIG IS +20%, REALLY?</span>
+      Head-to-head with an equal non-holder deposit, a holder wins <b>~54.5%</b> of the time vs 45.5%. Put another way: each 1 SQK a holder deposits is worth 1.2 tickets instead of 1.0. Small, fair edge — enough to reward holding, not enough to make deposits pointless.
+    </div>
+  </div>
+
+  <!-- 5 · THE DAILY DRAW -->
+  <div class="panel">
+    <h2><span class="num">05</span>The daily draw</h2>
+    <p>The draw is fully <b>permissionless</b> — no admin pulls the lever. It runs in three steps:</p>
+    <ul>
+      <li><b>Request</b> — once the 24h timer is up, anyone (or the automatic keeper) calls <code>requestDraw</code>. This <em>freezes the snapshot</em> — the exact player set and weights for this round — and asks Chainlink VRF for a random number.</li>
+      <li><b>Randomness lands</b> — Chainlink VRF 2.5 delivers the random word on-chain a few blocks later.</li>
+      <li><b>Settle</b> — anyone (or the keeper) calls <code>settleDraw</code>; the weighted winner is picked from the frozen snapshot and paid the prize instantly.</li>
+    </ul>
+    <div class="note">
+      <span class="tag">WHY THE SNAPSHOT MATTERS</span>
+      Because the player set is <b>frozen when the draw starts</b>, nobody can watch the random number arrive and then deposit to grab the win — late deposits and withdrawals only count toward the <em>next</em> round. The prize amount is locked in at request time too.
+    </div>
+    <p>An automatic <b>keeper</b> triggers both steps on schedule, so draws happen on time even if no player lifts a finger. If Chainlink ever failed to deliver, the round can be safely reset (prize rolls to the next day) — see trust &amp; safety.</p>
+  </div>
+
+  <!-- 6 · NO-LOSS GUARANTEE -->
+  <div class="panel">
+    <h2><span class="num">06</span>Why it's truly no-loss</h2>
+    <p>Deposits and the prize live in <b>two separate accounts</b> inside the contract:</p>
+    <ul>
+      <li><b>Total deposits</b> — the sum of everyone's SQK. The contract <em>never</em> pays a prize out of this.</li>
+      <li><b>Prize reserve</b> — sponsor-seeded SQK. A draw only ever transfers from here.</li>
+    </ul>
+    <p>Because the SQK held by the contract is always at least the total of all deposits, <b>every depositor can always withdraw in full</b> — withdrawals aren't even pausable. It's the first thing an auditor should check, and it holds by construction.</p>
+  </div>
+
+  <!-- 7 · TRUST & SAFETY -->
+  <div class="panel">
+    <h2><span class="num">07</span>Trust &amp; safety</h2>
+    <p>What the owner <em>can</em> do is deliberately tiny, and none of it touches your money:</p>
+    <ul>
+      <li><b>Tune VRF plumbing</b> (gas lane, confirmations) — only while no draw is in flight. No effect on funds, odds, or timing.</li>
+      <li><b>Pause</b> new deposits and new draw requests. Withdrawals and settling an in-flight draw <em>stay enabled</em> — a pause can never trap your SQK.</li>
+      <li><b>Unstick a dead draw</b> — if Chainlink never delivered, after 1 day the owner can reset the round. Funds are untouched; the prize rolls forward.</li>
+    </ul>
+    <p>What the owner <b>cannot</b> do: take or move deposits, touch the prize, change anyone's odds, change the +20% boost, swap which NFT counts, or pick the winner.</p>
+    <ul>
+      <li><b>Rig-proof randomness.</b> The VRF coordinator is pinned at deploy — a swapped coordinator can neither start nor finish a draw.</li>
+      <li><b>Lost-key safety.</b> If the owner key vanished, <em>anyone</em> can reset a genuinely stuck draw after 7 days, so draws can't freeze forever.</li>
+      <li><b>Reentrancy-guarded</b> throughout, and a misbehaving NFT contract can't brick a draw (the holder-check is gas- and output-bounded).</li>
+    </ul>
+    <div class="note warn">
+      <span class="tag">TOKEN PRECONDITION</span>
+      The no-loss promise assumes SQK is a standard ERC-20 — fixed-supply, non-rebasing, no fee-on-transfer, no transfer hooks. Squeekchain's SQK meets this. The contract is not safe to repoint at a non-standard token without a re-audit.
+    </div>
+  </div>
+
+  <!-- 8 · ADDRESSES -->
+  <div class="panel">
+    <h2><span class="num">08</span>Contracts &amp; addresses</h2>
+    <p>Everything is on-chain and verifiable. Network: <b>Ethereum Sepolia</b> (chain id <code>11155111</code>).</p>
+    <dl class="kv">
+      <dt>Squeek Pot</dt><dd><a href="https://sepolia.etherscan.io/address/0x2a86555598d4951d2dbfcb545e12e5aab06204d4" target="_blank" rel="noopener">0x2a86555598d4951d2dbfcb545e12e5aab06204d4</a></dd>
+      <dt>SQK token</dt><dd><a href="https://sepolia.etherscan.io/address/0xd78a3956cf63164d1fa1c622ad3c66623162fa1e" target="_blank" rel="noopener">0xd78a3956cf63164d1fa1c622ad3c66623162fa1e</a></dd>
+      <dt>Genesis NFT</dt><dd><a href="https://sepolia.etherscan.io/address/0xc4c7982657f00509548f3a3a41db7fa439a6856b" target="_blank" rel="noopener">0xc4c7982657f00509548f3a3a41db7fa439a6856b</a></dd>
+      <dt>VRF coord.</dt><dd><a href="https://sepolia.etherscan.io/address/0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B" target="_blank" rel="noopener">0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B</a></dd>
+    </dl>
+    <div class="note warn">
+      <span class="tag">TESTNET</span>
+      Squeek Pot runs on Sepolia testnet while Squeekchain Genesis is in its build phase. SQK and the prize are test assets for now.
+    </div>
+  </div>
+
+  <!-- 9 · FAQ -->
+  <div class="panel">
+    <h2><span class="num">09</span>FAQ</h2>
+    <h3>Can I lose my deposit?</h3>
+    <p>No. Prizes are paid only from the separate sponsor-funded reserve. Your deposit is always 100% withdrawable.</p>
+    <h3>Do I need the Genesis NFT to play?</h3>
+    <p>No — anyone can deposit and win. The NFT is an optional +20% odds boost, nothing more.</p>
+    <h3>Who runs the draw?</h3>
+    <p>Nobody in particular — it's permissionless. An automatic keeper fires it on schedule, but any player can trigger it too.</p>
+    <h3>Could the team rig who wins?</h3>
+    <p>No. Winners come from Chainlink VRF 2.5 over a snapshot frozen before the random number is known, and the VRF coordinator is pinned so it can't be swapped. The owner has no winner-picking power.</p>
+    <h3>What's the minimum, and how many can play?</h3>
+    <p>Minimum position is 1 SQK; up to 500 depositors can be in the pot at once.</p>
+    <h3>What happens to late deposits right before a draw?</h3>
+    <p>They count toward the next round. The current round's players and prize are locked in the moment the draw is requested.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <div class="links">
+      <a href="index.html">▶ PLAY</a>
+      <a href="https://x.com/andreehoan" target="_blank" rel="noopener">X / TWITTER</a>
+      <!-- DISCORD: add <a href="https://discord.gg/XXXXX" target="_blank" rel="noopener">DISCORD</a> once the invite is ready -->
+    </div>
+    no-loss lottery · chainlink vrf 2.5 · built for squeekchain genesis 🐹
+    <p class="disc">Squeek Pot is an experimental no-loss game on Sepolia testnet. Nothing here is financial advice. Verify every contract address on-chain before interacting.</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+cache/
+out/
+broadcast/
+.env
+*.log
+node_modules/
+web/dist/
+.codex-audit-*.md
+codex-*.log

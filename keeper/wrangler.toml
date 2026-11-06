@@ -1,0 +1,14 @@
+name = "squeek-pot-keeper"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Every 10 minutes: cheap, and robust to the exact 24h draw boundary drifting.
+# Most ticks are a single read + no-op; it only sends a tx when the state calls for it.
+[triggers]
+crons = ["*/10 * * * *"]
+
+# Secrets (NOT set here — set with `wrangler secret put`):
+#   KEEPER_PK   required  private key of a THROWAWAY wallet holding a little Sepolia ETH for gas
+# Optional var override:
+#   RPC_URL     a private RPC (Alchemy etc.) if the public node rate-limits
