@@ -1,5 +1,7 @@
 # 🐹 Squeek Pot — a no-loss SQK lottery on Squeekchain
 
+squeekchain-project: be7b1fb1-3801-4c84-8700-73e30e8b2273
+
 Deposit SQK, **keep it forever** (always 100% withdrawable), and your deposit size is
 your odds to win the **daily prize pot**. Your principal is never at risk — only the
 prize (seeded on testnet, staking yield later) is ever paid out. Winner picked by
