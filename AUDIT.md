@@ -151,3 +151,47 @@ Supersedes the hardened `0x5e34c1b5…`.
 **38 tests green** (35 unit + 3 invariant ×128k with the boost active on fuzzed actors); slither
 clean. On-chain getters confirmed: `boostNft=0xC4C7982657…`, `boostBps=2000`, `MAX_BOOST_BPS=10000`,
 `owner=Main`, `sqk=0xd78a3956…`, `i_coordinator=0x9Ddf…8B1B`, `payInNative=true`, `drawState=Idle`.
+
+---
+
+# SqueekPotYield (v2 — yield-funded no-loss) — audit (2026-11-07)
+
+Separate contract `src/SqueekPotYield.sol`: v1 + a staking-yield layer. Depositors' pooled SQK is
+staked into the Squeekchain staged-launch-1 staking venue (`0x50fd1780…`); the harvested reward
+stream funds the prize; principal stays 100% withdrawable. Staking is OFF by default
+(`stakingEnabled=false`) → behaviourally identical to v1 until the owner enables it (the venue
+reward stream is currently dry; flip on when it is re-funded).
+
+**No-loss invariant:** `feeReserve >= stakedPrincipal * safetyFeeBps / 1e4`, funded from yield/seed,
+absorbs the venue's dynamic 2%→60% exit fee so a withdrawal-driven unstake never touches another
+depositor's principal. `safetyFeeBps` is floored at the venue max (6000) and **raise-only** →
+STRICT always-no-loss the owner cannot weaken. Three non-commingled accumulators
+(`totalDeposits`/`prizeReserve`/`feeReserve`); a draw pays only `prizeReserve`; no owner→funds path.
+
+**codex gpt-5.5 xhigh, 4 adversarial rounds (hostile-venue + mutable-venue-policy threat model):**
+- **R1** — 2 P0 (spoofable venue authentication; trusting venue return values → phantom reserves),
+  2 P1 (owner could weaken cushion then sweep; venue-max increase strands), P2 (stray surplus
+  staked as principal), P3 (view rounding). **All fixed.**
+- **R2** — fixes incomplete: venue still getter-spoofable, `stake()` didn't verify SQK left,
+  `_unstake` could incrementally under-collateralise on a fee rise, stray-surplus had a second
+  path via `withdraw`. **Fixed:** venue **address-pinned** to `CANONICAL_STAKING` + balance-delta
+  accounting on `stake`/`unstake`/`harvest` (measured deltas, never venue return values) + fee-cap
+  in `_unstake` + `_availableForPrincipal` capped at accounted liquid principal + `withdraw`
+  reordered (liquidate before decrement).
+- **R3** — no P0; P1 (incoherent venue quote bypassed the fee cap), P2 (`safetyFeeBps` not strictly
+  raise-only), P3 (stale comment). **Fixed:** quote-coherence + explicit `feeActual <= feeQuote`
+  check; `setStakingParams` rejects any decrease; comment corrected.
+- **R4 (convergence)** — **no P0, no P1, no P2.** Confirmed: hostile-quote bypass closed, params
+  monotonic, no new principal-loss or owner→funds path, staking-off == v1. One P3 stale-NatSpec
+  line fixed after.
+
+**Residual (documented, bounded, no principal loss):** if Squeekchain governance lifts the venue's
+exit-fee max above the current cushion, unstake-requiring withdrawals **fail-safe revert** (never
+short-pay) until the owner raises `safetyFeeBps` / `recoverStake`s; liquid-buffer withdrawals are
+unaffected. Pinning authenticates the venue proxy endpoint, not a future malicious proxy upgrade
+(explicit venue-trust assumption). A mainnet build ships the mainnet venue address in
+`CANONICAL_STAKING`.
+
+**64 tests green** (26 yield-specific incl. strict-60%-run 100%-back, venue-lies/phantom-stake/
+incoherent-quote fail-safes, stray-surplus invariant, raise-only params + 35 v1 unit + 3 invariant
+×128k). Not yet deployed.
