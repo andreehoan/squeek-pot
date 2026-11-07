@@ -108,9 +108,9 @@ and regression-tested — see `AUDIT.md`).
 immutable **+20%** — the NFT's utility, costing the operator nothing. No-loss is untouched
 (the boost only shifts odds; the prize still pays from the reserve).
 
-**DEPLOYED (Sepolia, hardened + NFT-boost build):** `0x2a86555598d4951d2dbfcb545e12e5aab06204d4`
-(owner Main; VRF paid in native ETH; supersedes the pre-boost `0x5e34c1b5…`). Remaining operator
-steps: **add THIS contract as a consumer** on the "Squeek" VRF subscription at
-<https://vrf.chain.link/sepolia> (the redeploy changed the address — replace any earlier
-consumer), then **seed the prize** (`approve` + `fundPrize` from a wallet holding SQK), then host
-`web/index.html`.
+**DEPLOYED (Sepolia, TRUE no-loss yield build — `SqueekPotYield`):** `0xc911740452fb477d19cf78393b6c7554ae800582`
+(owner Main; VRF paid in native ETH; already added as a VRF consumer). Staking is **DISABLED at deploy**
+(`stakingEnabled=false`) so pooled SQK stays fully liquid and behaves exactly like the seeded build — until the
+Squeekchain staking reward stream is re-funded, at which point the owner calls `enableStaking(true)` and the prize
+is funded by staking yield (principal always 100% withdrawable). The earlier seeded-prize build
+`0x2a86555598d4951d2dbfcb545e12e5aab06204d4` remains live and withdrawable for anyone still deposited there.

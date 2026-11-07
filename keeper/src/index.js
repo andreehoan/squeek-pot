@@ -11,7 +11,7 @@
 
 import { ethers } from "ethers";
 
-const POT = "0x2a86555598d4951d2dbfcb545e12e5aab06204d4"; // SqueekPot (hardened + NFT boost), Sepolia
+const POT = "0xc911740452fb477d19cf78393b6c7554ae800582"; // SqueekPotYield (yield no-loss; staking off until stream funded), Sepolia
 const CHAIN_ID = 11155111;
 const POT_ABI = [
   "function canRequestDraw() view returns (bool)",
