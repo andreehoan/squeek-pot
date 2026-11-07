@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+import {PinnedVRFConsumerV2Plus} from "./PinnedVRFConsumerV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
 /// @title SqueekPot — a no-loss SQK lottery on Squeekchain (Sepolia)
@@ -43,7 +43,7 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 ///       fee-on-transfer token breaks the 100%-back promise on exit; a negative rebase
 ///       can drop the held balance below totalDeposits. Do not repoint to a
 ///       non-standard token without re-auditing.
-contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
+contract SqueekPot is PinnedVRFConsumerV2Plus, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     // --------------------------------------------------------------------- //
@@ -54,11 +54,10 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     IERC20 public immutable sqk;
     /// @notice Seconds between draws (set to 1 days for the live deployment).
     uint256 public immutable drawInterval;
-    /// @notice VRF coordinator pinned at deploy. The inherited `setCoordinator` can
-    ///         move `s_vrfCoordinator`, so request + fulfill both re-check against this
-    ///         immutable — a swapped coordinator can neither start nor fulfill a draw
-    ///         (closes the owner-rigs-the-winner path). Coordinator migration = redeploy.
-    address public immutable i_coordinator;
+    /// @notice VRF coordinator is pinned IMMUTABLY as `PinnedVRFConsumerV2Plus.vrfCoordinator`
+    ///         and there is deliberately NO `setCoordinator` — the owner cannot swap it to make a
+    ///         legitimate callback fail and then re-roll the draw (the censorship vector a stock
+    ///         `VRFConsumerBaseV2Plus` would expose). Coordinator migration = redeploy.
 
     /// @notice Squeek Genesis NFT collection. Holding ≥1 boosts your ticket weight at the draw
     ///         snapshot. Immutable by design — an owner-settable collection would let the owner
@@ -180,7 +179,6 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     error NotReady();
     error NotStuck();
     error NothingReceived();
-    error CoordinatorChanged();
     error TotalCapExceeded();
 
     // --------------------------------------------------------------------- //
@@ -208,14 +206,13 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         uint256 _drawInterval,
         uint256 _firstDrawDelay,
         address _boostNft
-    ) VRFConsumerBaseV2Plus(_vrfCoordinator) {
+    ) PinnedVRFConsumerV2Plus(_vrfCoordinator) {
         require(_sqk != address(0), "sqk=0");
         require(_drawInterval > 0, "interval=0");
         require(_boostNft != address(0), "boostNft=0");
         sqk = IERC20(_sqk);
         boostNft = IERC721(_boostNft);
         boostBps = 2000; // +20% for Squeek Genesis NFT holders (immutable, hard-capped by MAX_BOOST_BPS)
-        i_coordinator = _vrfCoordinator;
         drawInterval = _drawInterval;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
@@ -301,7 +298,6 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     /// @notice Request the daily draw. Permissionless once the interval has elapsed.
     function requestDraw() external nonReentrant whenNotPaused returns (uint256 requestId) {
         if (drawState != DrawState.Idle) revert DrawBusy();
-        if (address(s_vrfCoordinator) != i_coordinator) revert CoordinatorChanged();
         if (block.timestamp < nextDrawTime) revert TooEarly();
         if (totalDeposits == 0) revert NoPlayers();
         if (prizeReserve == 0) revert NoPrize();
@@ -314,7 +310,7 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         // re-entrant fulfillRandomWords(0,...) must NOT satisfy `requestId == pendingRequestId`.
         pendingRequestId = type(uint256).max;
 
-        requestId = s_vrfCoordinator.requestRandomWords(
+        requestId = vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: keyHash,
                 subId: subscriptionId,
@@ -328,11 +324,11 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         emit DrawRequested(roundId, requestId, pendingPrize);
     }
 
-    /// @inheritdoc VRFConsumerBaseV2Plus
+    /// @notice Coordinator-only randomness callback (reached only via rawFulfillRandomWords).
     /// @dev Kept intentionally tiny (fixed gas): just records the word and flips state.
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
-        // A coordinator swapped in via the inherited setCoordinator cannot fulfill.
-        if (address(s_vrfCoordinator) != i_coordinator) revert CoordinatorChanged();
+        // Coordinator is immutable (PinnedVRFConsumerV2Plus) and rawFulfillRandomWords already
+        // authenticates msg.sender against it, so only the real coordinator can reach here.
         // Ignore anything that isn't the request we're waiting on.
         if (drawState != DrawState.Requested || requestId != pendingRequestId) return;
         pendingRandomWord = randomWords[0];
@@ -492,7 +488,7 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     /// @notice Whether `requestDraw` would currently succeed.
     function canRequestDraw() external view returns (bool) {
         return drawState == DrawState.Idle && block.timestamp >= nextDrawTime && totalDeposits > 0
-            && prizeReserve > 0 && !paused() && address(s_vrfCoordinator) == i_coordinator;
+            && prizeReserve > 0 && !paused();
     }
 
     // --------------------------------------------------------------------- //

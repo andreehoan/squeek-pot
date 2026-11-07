@@ -177,19 +177,6 @@ interface IOwnable {
   function acceptOwnership() external;
 }
 
-// lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/interfaces/IVRFMigratableConsumerV2Plus.sol
-
-/// @notice The IVRFMigratableConsumerV2Plus interface defines the
-/// @notice method required to be implemented by all V2Plus consumers.
-/// @dev This interface is designed to be used in VRFConsumerBaseV2Plus.
-interface IVRFMigratableConsumerV2Plus {
-  event CoordinatorSet(address vrfCoordinator);
-
-  /// @notice Sets the VRF Coordinator address
-  /// @notice This method should only be callable by the coordinator or contract owner
-  function setCoordinator(address vrfCoordinator) external;
-}
-
 // lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/interfaces/IVRFSubscriptionV2Plus.sol
 
 /// @notice The IVRFSubscriptionV2Plus interface defines the subscription
@@ -621,6 +608,139 @@ contract ConfirmedOwnerWithProposal is IOwnable {
 
 // OpenZeppelin Contracts (last updated v5.0.0) (interfaces/IERC20.sol)
 
+// lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol
+
+// OpenZeppelin Contracts (last updated v5.1.0) (token/ERC721/IERC721.sol)
+
+/**
+ * @dev Required interface of an ERC-721 compliant contract.
+ */
+interface IERC721 is IERC165 {
+    /**
+     * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
+     */
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+
+    /**
+     * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.
+     */
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+
+    /**
+     * @dev Emitted when `owner` enables or disables (`approved`) `operator` to manage all of its assets.
+     */
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
+    /**
+     * @dev Returns the number of tokens in ``owner``'s account.
+     */
+    function balanceOf(address owner) external view returns (uint256 balance);
+
+    /**
+     * @dev Returns the owner of the `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function ownerOf(uint256 tokenId) external view returns (address owner);
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon
+     *   a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external;
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+     * are aware of the ERC-721 protocol to prevent tokens from being forever locked.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must have been allowed to move this token by either {approve} or
+     *   {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon
+     *   a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
+    /**
+     * @dev Transfers `tokenId` token from `from` to `to`.
+     *
+     * WARNING: Note that the caller is responsible to confirm that the recipient is capable of receiving ERC-721
+     * or else they may be permanently lost. Usage of {safeTransferFrom} prevents loss, though the caller must
+     * understand this adds an external call which potentially creates a reentrancy vulnerability.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(address from, address to, uint256 tokenId) external;
+
+    /**
+     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
+     * The approval is cleared when the token is transferred.
+     *
+     * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
+     *
+     * Requirements:
+     *
+     * - The caller must own the token or be an approved operator.
+     * - `tokenId` must exist.
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address to, uint256 tokenId) external;
+
+    /**
+     * @dev Approve or remove `operator` as an operator for the caller.
+     * Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.
+     *
+     * Requirements:
+     *
+     * - The `operator` cannot be the address zero.
+     *
+     * Emits an {ApprovalForAll} event.
+     */
+    function setApprovalForAll(address operator, bool approved) external;
+
+    /**
+     * @dev Returns the account approved for `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function getApproved(uint256 tokenId) external view returns (address operator);
+
+    /**
+     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
+     *
+     * See {setApprovalForAll}
+     */
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
+}
+
 // lib/openzeppelin-contracts/contracts/utils/Pausable.sol
 
 // OpenZeppelin Contracts (last updated v5.0.0) (utils/Pausable.sol)
@@ -862,6 +982,53 @@ interface IERC1363 is IERC20, IERC165 {
     function approveAndCall(address spender, uint256 value, bytes calldata data) external returns (bool);
 }
 
+// src/PinnedVRFConsumerV2Plus.sol
+
+/// @title PinnedVRFConsumerV2Plus
+/// @notice A minimal Chainlink VRF 2.5 consumer whose coordinator is IMMUTABLE, and which
+///         deliberately does NOT expose `setCoordinator`.
+///
+/// @dev WHY THIS REPLACES Chainlink's `VRFConsumerBaseV2Plus`:
+///      The stock base stores the coordinator in a MUTABLE `s_vrfCoordinator` and exposes an
+///      inherited `onlyOwnerOrCoordinator setCoordinator(address)`. Even when the consumer
+///      re-checks an immutable pin inside `fulfillRandomWords`, the base's `rawFulfillRandomWords`
+///      gate runs FIRST:
+///          if (msg.sender != address(s_vrfCoordinator)) revert OnlyCoordinatorCanFulfill(...);
+///      So an owner who swaps `s_vrfCoordinator` AFTER a request makes the REAL coordinator's
+///      callback revert at that gate. The VRF coordinator deletes the request commitment and
+///      records the callback failure WITHOUT reverting, so the draw is consumed-and-lost; the
+///      owner then recovers the stuck draw and re-rolls until a chosen winner appears — i.e. the
+///      owner can CENSOR unfavorable VRF outcomes. (Found in a red-team pass; see AUDIT.md.)
+///
+///      Pinning the coordinator immutably and removing `setCoordinator` closes that vector: no
+///      owner action can change the address `rawFulfillRandomWords` authenticates against, so a
+///      legitimate callback can never be made to fail. Coordinator migration = redeploy (the
+///      intended, documented trade-off).
+abstract contract PinnedVRFConsumerV2Plus is ConfirmedOwner {
+    error OnlyCoordinatorCanFulfill(address have, address want);
+    error ZeroCoordinator();
+
+    /// @notice The VRF 2.5 coordinator, pinned at deploy and NEVER changeable.
+    IVRFCoordinatorV2Plus public immutable vrfCoordinator;
+
+    constructor(address _vrfCoordinator) ConfirmedOwner(msg.sender) {
+        if (_vrfCoordinator == address(0)) revert ZeroCoordinator();
+        vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
+    }
+
+    /// @notice Consumer-implemented randomness handler (called only via `rawFulfillRandomWords`).
+    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal virtual;
+
+    /// @notice Coordinator entrypoint, authenticated against the IMMUTABLE coordinator — so no
+    ///         owner action can make a genuine callback fail this gate.
+    function rawFulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) external {
+        if (msg.sender != address(vrfCoordinator)) {
+            revert OnlyCoordinatorCanFulfill(msg.sender, address(vrfCoordinator));
+        }
+        fulfillRandomWords(requestId, randomWords);
+    }
+}
+
 // lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol
 
 // OpenZeppelin Contracts (last updated v5.1.0) (token/ERC20/utils/SafeERC20.sol)
@@ -1057,167 +1224,6 @@ library SafeERC20 {
     }
 }
 
-// lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol
-
-/** ****************************************************************************
- * @notice Interface for contracts using VRF randomness
- * *****************************************************************************
- * @dev PURPOSE
- *
- * @dev Reggie the Random Oracle (not his real job) wants to provide randomness
- * @dev to Vera the verifier in such a way that Vera can be sure he's not
- * @dev making his output up to suit himself. Reggie provides Vera a public key
- * @dev to which he knows the secret key. Each time Vera provides a seed to
- * @dev Reggie, he gives back a value which is computed completely
- * @dev deterministically from the seed and the secret key.
- *
- * @dev Reggie provides a proof by which Vera can verify that the output was
- * @dev correctly computed once Reggie tells it to her, but without that proof,
- * @dev the output is indistinguishable to her from a uniform random sample
- * @dev from the output space.
- *
- * @dev The purpose of this contract is to make it easy for unrelated contracts
- * @dev to talk to Vera the verifier about the work Reggie is doing, to provide
- * @dev simple access to a verifiable source of randomness. It ensures 2 things:
- * @dev 1. The fulfillment came from the VRFCoordinatorV2Plus.
- * @dev 2. The consumer contract implements fulfillRandomWords.
- * *****************************************************************************
- * @dev USAGE
- *
- * @dev Calling contracts must inherit from VRFConsumerBaseV2Plus, and can
- * @dev initialize VRFConsumerBaseV2Plus's attributes in their constructor as
- * @dev shown:
- *
- * @dev   contract VRFConsumerV2Plus is VRFConsumerBaseV2Plus {
- * @dev     constructor(<other arguments>, address _vrfCoordinator, address _subOwner)
- * @dev       VRFConsumerBaseV2Plus(_vrfCoordinator, _subOwner) public {
- * @dev         <initialization with other arguments goes here>
- * @dev       }
- * @dev   }
- *
- * @dev The oracle will have given you an ID for the VRF keypair they have
- * @dev committed to (let's call it keyHash). Create a subscription, fund it
- * @dev and your consumer contract as a consumer of it (see VRFCoordinatorInterface
- * @dev subscription management functions).
- * @dev Call requestRandomWords(keyHash, subId, minimumRequestConfirmations,
- * @dev callbackGasLimit, numWords, extraArgs),
- * @dev see (IVRFCoordinatorV2Plus for a description of the arguments).
- *
- * @dev Once the VRFCoordinatorV2Plus has received and validated the oracle's response
- * @dev to your request, it will call your contract's fulfillRandomWords method.
- *
- * @dev The randomness argument to fulfillRandomWords is a set of random words
- * @dev generated from your requestId and the blockHash of the request.
- *
- * @dev If your contract could have concurrent requests open, you can use the
- * @dev requestId returned from requestRandomWords to track which response is associated
- * @dev with which randomness request.
- * @dev See "SECURITY CONSIDERATIONS" for principles to keep in mind,
- * @dev if your contract could have multiple requests in flight simultaneously.
- *
- * @dev Colliding `requestId`s are cryptographically impossible as long as seeds
- * @dev differ.
- *
- * *****************************************************************************
- * @dev SECURITY CONSIDERATIONS
- *
- * @dev A method with the ability to call your fulfillRandomness method directly
- * @dev could spoof a VRF response with any random value, so it's critical that
- * @dev it cannot be directly called by anything other than this base contract
- * @dev (specifically, by the VRFConsumerBaseV2Plus.rawFulfillRandomness method).
- *
- * @dev For your users to trust that your contract's random behavior is free
- * @dev from malicious interference, it's best if you can write it so that all
- * @dev behaviors implied by a VRF response are executed *during* your
- * @dev fulfillRandomness method. If your contract must store the response (or
- * @dev anything derived from it) and use it later, you must ensure that any
- * @dev user-significant behavior which depends on that stored value cannot be
- * @dev manipulated by a subsequent VRF request.
- *
- * @dev Similarly, both miners and the VRF oracle itself have some influence
- * @dev over the order in which VRF responses appear on the blockchain, so if
- * @dev your contract could have multiple VRF requests in flight simultaneously,
- * @dev you must ensure that the order in which the VRF responses arrive cannot
- * @dev be used to manipulate your contract's user-significant behavior.
- *
- * @dev Since the block hash of the block which contains the requestRandomness
- * @dev call is mixed into the input to the VRF *last*, a sufficiently powerful
- * @dev miner could, in principle, fork the blockchain to evict the block
- * @dev containing the request, forcing the request to be included in a
- * @dev different block with a different hash, and therefore a different input
- * @dev to the VRF. However, such an attack would incur a substantial economic
- * @dev cost. This cost scales with the number of blocks the VRF oracle waits
- * @dev until it calls responds to a request. It is for this reason that
- * @dev that you can signal to an oracle you'd like them to wait longer before
- * @dev responding to the request (however this is not enforced in the contract
- * @dev and so remains effective only in the case of unmodified oracle software).
- */
-abstract contract VRFConsumerBaseV2Plus is IVRFMigratableConsumerV2Plus, ConfirmedOwner {
-  error OnlyCoordinatorCanFulfill(address have, address want);
-  error OnlyOwnerOrCoordinator(address have, address owner, address coordinator);
-  error ZeroAddress();
-
-  // s_vrfCoordinator should be used by consumers to make requests to vrfCoordinator
-  // so that coordinator reference is updated after migration
-  IVRFCoordinatorV2Plus public s_vrfCoordinator;
-
-  /**
-   * @param _vrfCoordinator address of VRFCoordinator contract
-   */
-  constructor(address _vrfCoordinator) ConfirmedOwner(msg.sender) {
-    if (_vrfCoordinator == address(0)) {
-      revert ZeroAddress();
-    }
-    s_vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
-  }
-
-  /**
-   * @notice fulfillRandomness handles the VRF response. Your contract must
-   * @notice implement it. See "SECURITY CONSIDERATIONS" above for important
-   * @notice principles to keep in mind when implementing your fulfillRandomness
-   * @notice method.
-   *
-   * @dev VRFConsumerBaseV2Plus expects its subcontracts to have a method with this
-   * @dev signature, and will call it once it has verified the proof
-   * @dev associated with the randomness. (It is triggered via a call to
-   * @dev rawFulfillRandomness, below.)
-   *
-   * @param requestId The Id initially returned by requestRandomness
-   * @param randomWords the VRF output expanded to the requested number of words
-   */
-  // solhint-disable-next-line chainlink-solidity/prefix-internal-functions-with-underscore
-  function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal virtual;
-
-  // rawFulfillRandomness is called by VRFCoordinator when it receives a valid VRF
-  // proof. rawFulfillRandomness then calls fulfillRandomness, after validating
-  // the origin of the call
-  function rawFulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) external {
-    if (msg.sender != address(s_vrfCoordinator)) {
-      revert OnlyCoordinatorCanFulfill(msg.sender, address(s_vrfCoordinator));
-    }
-    fulfillRandomWords(requestId, randomWords);
-  }
-
-  /**
-   * @inheritdoc IVRFMigratableConsumerV2Plus
-   */
-  function setCoordinator(address _vrfCoordinator) external override onlyOwnerOrCoordinator {
-    if (_vrfCoordinator == address(0)) {
-      revert ZeroAddress();
-    }
-    s_vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
-
-    emit CoordinatorSet(_vrfCoordinator);
-  }
-
-  modifier onlyOwnerOrCoordinator() {
-    if (msg.sender != owner() && msg.sender != address(s_vrfCoordinator)) {
-      revert OnlyOwnerOrCoordinator(msg.sender, owner(), address(s_vrfCoordinator));
-    }
-    _;
-  }
-}
-
 // src/SqueekPot.sol
 
 /// @title SqueekPot — a no-loss SQK lottery on Squeekchain (Sepolia)
@@ -1242,13 +1248,19 @@ abstract contract VRFConsumerBaseV2Plus is IVRFMigratableConsumerV2Plus, Confirm
 ///       the O(n) weighted winner pick + payout, so the callback can never run out of
 ///       gas as the player set grows.
 ///
+///       NFT BOOST: holding ≥1 Squeek Genesis NFT (`boostNft`) multiplies your ticket weight at the
+///       draw snapshot by `(1 + boostBps/1e4)` — a fixed, immutable +20% (hard-capped at +100%).
+///       Still no-loss (deposits untouched); only the odds weighting changes. The NFT read is a
+///       gas- and returndata-bounded, failure-tolerant staticcall, so a misbehaving collection
+///       cannot brick a draw.
+///
 ///       TOKEN PRECONDITION: SQK is assumed a standard ERC-20 — fixed-supply,
 ///       non-rebasing, non-fee-on-transfer, non-blocklisting, and WITHOUT transfer
 ///       hooks (no ERC-777-style callbacks). staged-launch-1 SQK meets this. A
 ///       fee-on-transfer token breaks the 100%-back promise on exit; a negative rebase
 ///       can drop the held balance below totalDeposits. Do not repoint to a
 ///       non-standard token without re-auditing.
-contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
+contract SqueekPot is PinnedVRFConsumerV2Plus, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     // --------------------------------------------------------------------- //
@@ -1259,11 +1271,16 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     IERC20 public immutable sqk;
     /// @notice Seconds between draws (set to 1 days for the live deployment).
     uint256 public immutable drawInterval;
-    /// @notice VRF coordinator pinned at deploy. The inherited `setCoordinator` can
-    ///         move `s_vrfCoordinator`, so request + fulfill both re-check against this
-    ///         immutable — a swapped coordinator can neither start nor fulfill a draw
-    ///         (closes the owner-rigs-the-winner path). Coordinator migration = redeploy.
-    address public immutable i_coordinator;
+    /// @notice VRF coordinator is pinned IMMUTABLY as `PinnedVRFConsumerV2Plus.vrfCoordinator`
+    ///         and there is deliberately NO `setCoordinator` — the owner cannot swap it to make a
+    ///         legitimate callback fail and then re-roll the draw (the censorship vector a stock
+    ///         `VRFConsumerBaseV2Plus` would expose). Coordinator migration = redeploy.
+
+    /// @notice Squeek Genesis NFT collection. Holding ≥1 boosts your ticket weight at the draw
+    ///         snapshot. Immutable by design — an owner-settable collection would let the owner
+    ///         point it at an NFT only they hold and rig their own odds; a collection change is a
+    ///         redeploy. The boost SIZE is also fixed at deploy (see `boostBps`) and hard-capped.
+    IERC721 public immutable boostNft;
 
     /// @notice Minimum position size — anti-dust floor so the bounded player list
     ///         cannot be cheaply flooded. Odds-neutral (does not change payouts).
@@ -1275,8 +1292,12 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     /// @notice After this grace period ANYONE may recover a stuck draw (lost-owner-key safety).
     uint256 public constant STUCK_FALLBACK_TIMEOUT = 7 days;
     /// @notice Deposits are rejected once the pot total would exceed this, so cumulative
-    ///         weight always fits the packed uint96 in the eligibility snapshot (~7.9e10 SQK).
-    uint256 public constant MAX_TOTAL = type(uint96).max;
+    ///         weight always fits the packed uint96 in the snapshot. Half of uint96 so that even a
+    ///         fully-boosted cumulative weight (≤ 2× total) still fits (~3.9e10 SQK — beyond any use).
+    uint256 public constant MAX_TOTAL = type(uint96).max / 2;
+    /// @notice Hard ceiling (100%) on the NFT-holder odds boost. The fixed `boostBps` always
+    ///         respects this; the packed-weight bound relies on it (boosted weight ≤ 2× deposit).
+    uint256 public constant MAX_BOOST_BPS = 10_000;
 
     // --------------------------------------------------------------------- //
     //                        VRF config (owner-tunable)                     //
@@ -1289,6 +1310,12 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     uint16 public requestConfirmations;
     uint32 public callbackGasLimit;
     bool public payInNative;
+
+    /// @notice Genesis-NFT-holder odds boost, in basis points (2000 = +20%), applied equally to
+    ///         every holder. IMMUTABLE — fixed at deploy, not owner-tunable, so the owner cannot
+    ///         crank their own cohort's odds before a draw (closes the owner-self-tilt vector).
+    ///         Changing it is a redeploy. Always <= MAX_BOOST_BPS, which the packed-weight bound relies on.
+    uint256 public immutable boostBps;
 
     // --------------------------------------------------------------------- //
     //                           Deposit accounting                          //
@@ -1369,7 +1396,6 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     error NotReady();
     error NotStuck();
     error NothingReceived();
-    error CoordinatorChanged();
     error TotalCapExceeded();
 
     // --------------------------------------------------------------------- //
@@ -1385,6 +1411,7 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     /// @param _payInNative true = pay VRF in native ETH, false = pay in LINK.
     /// @param _drawInterval seconds between draws (1 days live).
     /// @param _firstDrawDelay seconds from deploy until the first draw may be requested.
+    /// @param _boostNft Squeek Genesis NFT collection; holding ≥1 boosts your draw weight.
     constructor(
         address _sqk,
         address _vrfCoordinator,
@@ -1394,12 +1421,15 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         uint32 _callbackGasLimit,
         bool _payInNative,
         uint256 _drawInterval,
-        uint256 _firstDrawDelay
-    ) VRFConsumerBaseV2Plus(_vrfCoordinator) {
+        uint256 _firstDrawDelay,
+        address _boostNft
+    ) PinnedVRFConsumerV2Plus(_vrfCoordinator) {
         require(_sqk != address(0), "sqk=0");
         require(_drawInterval > 0, "interval=0");
+        require(_boostNft != address(0), "boostNft=0");
         sqk = IERC20(_sqk);
-        i_coordinator = _vrfCoordinator;
+        boostNft = IERC721(_boostNft);
+        boostBps = 2000; // +20% for Squeek Genesis NFT holders (immutable, hard-capped by MAX_BOOST_BPS)
         drawInterval = _drawInterval;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
@@ -1485,7 +1515,6 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     /// @notice Request the daily draw. Permissionless once the interval has elapsed.
     function requestDraw() external nonReentrant whenNotPaused returns (uint256 requestId) {
         if (drawState != DrawState.Idle) revert DrawBusy();
-        if (address(s_vrfCoordinator) != i_coordinator) revert CoordinatorChanged();
         if (block.timestamp < nextDrawTime) revert TooEarly();
         if (totalDeposits == 0) revert NoPlayers();
         if (prizeReserve == 0) revert NoPrize();
@@ -1498,7 +1527,7 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         // re-entrant fulfillRandomWords(0,...) must NOT satisfy `requestId == pendingRequestId`.
         pendingRequestId = type(uint256).max;
 
-        requestId = s_vrfCoordinator.requestRandomWords(
+        requestId = vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: keyHash,
                 subId: subscriptionId,
@@ -1512,11 +1541,11 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         emit DrawRequested(roundId, requestId, pendingPrize);
     }
 
-    /// @inheritdoc VRFConsumerBaseV2Plus
+    /// @notice Coordinator-only randomness callback (reached only via rawFulfillRandomWords).
     /// @dev Kept intentionally tiny (fixed gas): just records the word and flips state.
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
-        // A coordinator swapped in via the inherited setCoordinator cannot fulfill.
-        if (address(s_vrfCoordinator) != i_coordinator) revert CoordinatorChanged();
+        // Coordinator is immutable (PinnedVRFConsumerV2Plus) and rawFulfillRandomWords already
+        // authenticates msg.sender against it, so only the real coordinator can reach here.
         // Ignore anything that isn't the request we're waiting on.
         if (drawState != DrawState.Requested || requestId != pendingRequestId) return;
         pendingRandomWord = randomWords[0];
@@ -1668,10 +1697,15 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         return nextDrawTime - block.timestamp;
     }
 
+    /// @notice Whether `user` currently holds a boost NFT (so their deposit is weighted up).
+    function holdsBoostNft(address user) external view returns (bool) {
+        return _holdsBoostNft(user);
+    }
+
     /// @notice Whether `requestDraw` would currently succeed.
     function canRequestDraw() external view returns (bool) {
         return drawState == DrawState.Idle && block.timestamp >= nextDrawTime && totalDeposits > 0
-            && prizeReserve > 0 && !paused() && address(s_vrfCoordinator) == i_coordinator;
+            && prizeReserve > 0 && !paused();
     }
 
     // --------------------------------------------------------------------- //
@@ -1692,14 +1726,37 @@ contract SqueekPot is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     function _freezeEligibility() private {
         _clearSnapshot();
         uint256 cum;
+        uint256 bps = boostBps; // cache; when 0 the per-holder NFT read is skipped entirely
         uint256 n = participants.length;
         for (uint256 i = 0; i < n; ++i) {
             address p = participants[i];
-            cum += deposits[p];
-            // cum <= totalDeposits <= MAX_TOTAL (uint96), so the pack is lossless.
+            uint256 w = deposits[p];
+            if (bps != 0 && _holdsBoostNft(p)) {
+                w += w * bps / 10_000; // boosted weight; <= 2x deposit (bps <= MAX_BOOST_BPS)
+            }
+            cum += w;
+            // cum <= 2 * totalDeposits <= 2 * MAX_TOTAL == uint96.max - 1 < uint96.max, lossless pack.
             _snap.push((uint256(uint160(p)) << 96) | uint96(cum));
         }
-        _snapTotal = cum; // equals totalDeposits at request time
+        _snapTotal = cum; // boosted total weight for this round
+    }
+
+    /// @dev Does `who` hold at least one boost NFT? The read is gas-bounded (30k — ample for a
+    ///      standard O(1) balanceOf) and copies AT MOST 32 bytes of return data (zero-length output
+    ///      buffer, `returndatasize()==32` gate), so a reverting, gas-burning, or returndata-bombing
+    ///      collection yields NO boost instead of bricking a draw — regardless of its code.
+    function _holdsBoostNft(address who) private view returns (bool held) {
+        address nft = address(boostNft);
+        bytes memory cd = abi.encodeWithSelector(IERC721.balanceOf.selector, who);
+        assembly {
+            // staticcall with a 30k stipend and a ZERO-length output buffer (no auto-copy of returndata).
+            let ok := staticcall(30000, nft, add(cd, 0x20), mload(cd), 0x00, 0x00)
+            // Accept ONLY a well-formed 32-byte return; copy exactly those 32 bytes, never more.
+            if and(ok, eq(returndatasize(), 32)) {
+                returndatacopy(0x00, 0x00, 0x20)
+                held := gt(mload(0x00), 0)
+            }
+        }
     }
 
     /// @dev Release the eligibility snapshot (frees storage between rounds).

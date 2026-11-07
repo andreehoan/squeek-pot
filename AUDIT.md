@@ -126,6 +126,44 @@ prize still pays from `prizeReserve`). Deployed Sepolia at
 `0xed0c4fa080541f42fc478182b0c354655e3e4f8ac36002bb4a2e34f269d0c1c6`, gas 14.76M).
 Supersedes the hardened `0x5e34c1b5…`.
 
+### Round 5 — adversarial red-team (2026-11-07) — REDEPLOYED (pinned VRF base)
+A focused exploit-only red-team pass (codex xhigh, read-only) on the `0x2a865555…` build confirmed
+every **external-attacker** vector holds (principal theft/lock, depositor odds manipulation,
+griefing/DoS, prize draining, NFT-boost abuse, reentrancy, arithmetic, VRF injection) — and
+surfaced **ONE owner-only P1 that the Round-2 "dropped P3-3" note had wrongly assumed was covered
+by the `i_coordinator` pin.**
+
+**P1 — owner can censor an unfavourable VRF outcome and re-roll.** The immutable `i_coordinator`
+stopped a *swapped* coordinator from *injecting* a chosen word, but did not stop the owner from
+using the inherited mutable `s_vrfCoordinator` + `setCoordinator` to make the *real* callback
+fail. Exploit: owner lets `requestDraw` succeed, sees the pending fulfillment, simulates the
+winner; if unfavourable, front-runs with `setCoordinator(0xBEEF)`. The real coordinator's
+`rawFulfillRandomWords` then reverts at the base's `msg.sender != s_vrfCoordinator` gate — which
+runs BEFORE SqueekPot's own `i_coordinator` re-check. The coordinator deletes the request
+commitment and records the callback failure *without* reverting, so the draw is consumed-and-lost
+and the pot sits in `Requested`. After `DRAW_TIMEOUT` the owner `cancelStuckDraw`s (prize intact),
+restores the coordinator, and re-requests — re-rolling until a chosen winner appears. No-loss is
+never broken (principal untouched; only the owner-seeded prize is redirected), the attack is slow
+(1 day + a VRF fee per re-roll) and visible on-chain (repeated `DrawCancelled`), but it defeats
+the "provably fair" guarantee against a malicious owner.
+
+**FIXED (root cause):** the base's `setCoordinator` is `external` non-virtual and cannot be
+disabled in place — confirming the Round-2 premise but not its conclusion. Replaced the
+`VRFConsumerBaseV2Plus` inheritance with a minimal **`src/PinnedVRFConsumerV2Plus.sol`** whose
+coordinator is `immutable` and which exposes **no** `setCoordinator`; `rawFulfillRandomWords`
+authenticates against that immutable, so no owner action can change the address a legitimate
+callback is checked against — the vector is closed at the root. `SqueekPot` drops its now-redundant
+`i_coordinator` field + `CoordinatorChanged` checks; coordinator migration = redeploy (the
+documented, intended trade-off). **38 tests green** (35 unit + 3 invariant ×128k, 0 reverts); the
+coordinator-swap test became an immutability + fulfill-authentication assertion.
+
+**REDEPLOYED Sepolia at `0xb10f936e25458aea8f5a62a130b8f5cdd898ebcc`** (owner Main, deploy tx
+`0xfae27321b8274fa7ca84bdb4007097f800214d225fc377f457ba9c9e5d2cd250`). Supersedes `0x2a865555…`
+(which carried the inherited setter). Added as a VRF consumer + seeded (5 SQK deposit + 2 SQK
+prize). The prior builds' live proofs (approve/deposit/withdraw, fundPrize, single + 7-wallet
+weighted VRF draw with the +20% boost, full no-loss recovery) stand; this build is byte-identical
+except for the VRF base and passes the same suite.
+
 **Audit: codex ×3 passes + a 2-agent swarm (boost-math + boost-safety) on the boost diff.**
 
 - **P1 — unbounded NFT `balanceOf` staticcall could wedge `requestDraw`** (gas-burn or

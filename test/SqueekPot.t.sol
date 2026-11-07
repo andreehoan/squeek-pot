@@ -3,6 +3,7 @@ pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
 import {SqueekPot} from "../src/SqueekPot.sol";
+import {PinnedVRFConsumerV2Plus} from "../src/PinnedVRFConsumerV2Plus.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockERC721} from "./mocks/MockERC721.sol";
 import {MockBadERC721} from "./mocks/MockBadERC721.sol";
@@ -307,16 +308,22 @@ contract SqueekPotTest is Test {
         assertEq(pot.lastWinner(), bob); // snapshot total 200 used; carol ignored
     }
 
-    function test_CoordinatorSwapBlocksDraw() public {
-        _deposit(alice, 100e18);
-        _seed(50e18);
-        vm.warp(pot.nextDrawTime());
+    function test_CoordinatorIsImmutableAndPinned() public {
+        // The coordinator is exposed IMMUTABLY and there is no setCoordinator to swap it, so
+        // the owner cannot make a legitimate callback fail and re-roll (the red-teamed vector).
+        assertEq(address(pot.vrfCoordinator()), address(vrf));
 
-        // owner moves the base coordinator; pinned i_coordinator no longer matches
-        assertEq(pot.i_coordinator(), address(vrf));
-        pot.setCoordinator(address(0xBEEF));
-        vm.expectRevert(SqueekPot.CoordinatorChanged.selector);
-        pot.requestDraw();
+        // The only fulfill path authenticates msg.sender against the pinned coordinator — a
+        // non-coordinator caller is rejected, so no spoofed word can reach fulfillRandomWords.
+        uint256[] memory words = new uint256[](1);
+        words[0] = 123;
+        vm.prank(address(0xBEEF));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PinnedVRFConsumerV2Plus.OnlyCoordinatorCanFulfill.selector, address(0xBEEF), address(vrf)
+            )
+        );
+        pot.rawFulfillRandomWords(1, words);
     }
 
     function test_FundingAfterRequestRollsToNextRound() public {

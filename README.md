@@ -100,17 +100,20 @@ Verified Sepolia addresses (Chainlink VRF 2.5 + staged-launch-1 SQK):
 ## Status
 
 Contract + full test suite complete and green (**38 tests**: 35 unit + 3 invariants);
-slither clean; **codex-audited over 4 rounds + two fresh agent reviews** (all findings fixed
-and regression-tested — see `AUDIT.md`).
+slither clean; **codex-audited over 4 rounds + two fresh agent reviews + a final adversarial
+red-team pass** (all findings fixed and regression-tested — see `AUDIT.md`).
 
 **Genesis NFT boost:** holding ≥1 **Squeek Genesis NFT**
 (`0xc4c7982657f00509548f3a3a41db7fa439a6856b`) weights your draw snapshot by a fixed,
 immutable **+20%** — the NFT's utility, costing the operator nothing. No-loss is untouched
 (the boost only shifts odds; the prize still pays from the reserve).
 
-**DEPLOYED (Sepolia, hardened + NFT-boost build):** `0x2a86555598d4951d2dbfcb545e12e5aab06204d4`
-(owner Main; VRF paid in native ETH; supersedes the pre-boost `0x5e34c1b5…`). Remaining operator
-steps: **add THIS contract as a consumer** on the "Squeek" VRF subscription at
-<https://vrf.chain.link/sepolia> (the redeploy changed the address — replace any earlier
-consumer), then **seed the prize** (`approve` + `fundPrize` from a wallet holding SQK), then host
-`web/index.html`.
+**Provably-fair hardening:** the VRF coordinator is pinned **immutably** and the contract does
+**not** inherit Chainlink's `setCoordinator`, so the owner cannot swap the coordinator to censor
+an unfavourable draw and re-roll. See `src/PinnedVRFConsumerV2Plus.sol` and `AUDIT.md`.
+
+**DEPLOYED (Sepolia, hardened build):** `0xb10f936e25458aea8f5a62a130b8f5cdd898ebcc`
+(owner Main; VRF paid in native ETH; immutable coordinator, no `setCoordinator`; supersedes the
+earlier `0x2a865555…` build, which carried the inherited coordinator setter). The contract is a
+consumer of the operator's VRF subscription and seeded (5 SQK deposit + 2 SQK prize); the site in
+`web/index.html` is live at <https://sqkpot.xyz>.
