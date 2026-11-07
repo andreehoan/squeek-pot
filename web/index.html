@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Squeek Pot</title>
 <meta name="description" content="Deposit SQK, keep it forever, win the daily prize. A no-loss arcade lottery on Squeekchain." />
+<meta name="squeekchain-project" content="be7b1fb1-3801-4c84-8700-73e30e8b2273" />
+<link rel="icon" href="favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
@@ -186,6 +190,65 @@
   .hammy-bubble{position:fixed;z-index:41;pointer-events:none;font-family:var(--font-term);font-size:21px;line-height:1;letter-spacing:.5px;color:#0b0a14;background:#fff;border:3px solid #0b0a14;border-radius:16px;padding:9px 14px;box-shadow:3px 4px 0 rgba(0,0,0,.55);white-space:nowrap;transform:translate(-50%,0)}
   .hammy-bubble::after{content:"";position:absolute;left:50%;margin-left:-10px;bottom:-14px;width:0;height:0;border:10px solid transparent;border-top-color:#0b0a14}
   .hammy-bubble::before{content:"";position:absolute;left:50%;margin-left:-6px;bottom:-9px;width:0;height:0;border:7px solid transparent;border-top-color:#fff;z-index:1}
+  /* ---- hall of fame / prize chart / activity ticker ---- */
+  .hof,.ticker{max-height:240px;overflow-y:auto}
+  .hof::-webkit-scrollbar,.ticker::-webkit-scrollbar{width:8px}
+  .hof::-webkit-scrollbar-thumb,.ticker::-webkit-scrollbar-thumb{background:var(--panel-edge);border-radius:4px}
+  .hofhead{display:flex;gap:18px;margin:-2px 0 12px;flex-wrap:wrap}
+  .hofhead .kv{font-family:var(--font-term);font-size:14px;color:var(--dim);letter-spacing:1px}
+  .hofhead .kv b{display:block;font-family:var(--font-display);font-size:13px;color:var(--cyan);margin-top:4px;text-shadow:var(--glow-c)}
+  .hofrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-family:var(--font-term);font-size:19px;padding:9px 6px;border-bottom:1px solid #160d28}
+  .hofrow .rnd{font-family:var(--font-display);font-size:9px;color:var(--dim);margin-right:2px}
+  .hofrow .who{color:var(--amber);text-shadow:var(--glow-a)}
+  .hofrow .prz{color:var(--green);white-space:nowrap}
+  .hofrow.me .who{color:var(--green);text-shadow:var(--glow-g)}
+  .empty{font-family:var(--font-term);font-size:17px;color:var(--dim);text-align:center;padding:26px 8px;letter-spacing:1px}
+  .chartwrap{width:100%;overflow:hidden}
+  svg.chart{width:100%;height:150px;display:block}
+  .tickrow{display:flex;align-items:baseline;gap:8px;font-family:var(--font-term);font-size:18px;padding:7px 6px;border-bottom:1px solid #160d28}
+  .tickrow .ta{color:var(--cyan)}
+  .tickrow .tv{color:var(--amber);margin-left:auto;white-space:nowrap}
+  .tickrow .tt{font-size:14px;color:var(--dim);white-space:nowrap;min-width:48px;text-align:right}
+  button.wc{background:var(--violet);color:#140826;box-shadow:0 4px 0 #3b1d6b,0 6px 16px rgba(0,0,0,.5)}
+  button.wc:active{box-shadow:0 0 0 #3b1d6b}
+  button.demo{font-size:9px}
+  /* ---- wallet account menu (address pill → dropdown) ---- */
+  .walletwrap{position:relative}   /* NO display override — it would defeat the [hidden] attribute */
+  .walletwrap .pill{cursor:pointer;user-select:none}
+  .walletwrap .pill .caret{margin-left:6px;color:var(--dim)}
+  .wmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:184px;
+    background:linear-gradient(158deg,rgba(32,17,60,.97),rgba(11,5,27,.99));
+    border:2px solid var(--panel-edge);border-radius:4px;
+    box-shadow:0 0 0 1px #000, 0 16px 44px rgba(0,0,0,.6);padding:5px}
+  .wmi{font-family:var(--font-display);font-size:9px;letter-spacing:1px;color:var(--cyan);
+    padding:11px 12px;border-radius:3px;cursor:pointer;white-space:nowrap}
+  .wmi:hover{background:rgba(164,107,255,.16);color:var(--amber)}
+  .wmi.danger{color:var(--mag)}
+  .wmi.danger:hover{color:#ff8a8a;background:rgba(255,60,182,.12)}
+  /* ---- wallet selection modal (EIP-6963 discovery + WalletConnect) ---- */
+  .wmodal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+    background:rgba(2,0,8,.74);backdrop-filter:blur(3px);padding:16px}
+  .wmodal[hidden]{display:none}
+  .wmodal-card{width:100%;max-width:348px;padding:14px;border:2px solid var(--panel-edge);border-radius:6px;
+    background:linear-gradient(158deg,rgba(32,17,60,.98),rgba(11,5,27,.99));
+    box-shadow:0 0 0 1px #000,0 22px 64px rgba(0,0,0,.7)}
+  .wmodal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .wmodal-title{font-family:var(--font-display);font-size:10px;letter-spacing:1px;color:var(--amber);text-shadow:var(--glow-a)}
+  .wmodal-x{background:none;border:none;color:var(--dim);font-size:17px;line-height:1;cursor:pointer;padding:2px 6px}
+  .wmodal-x:hover{color:var(--mag)}
+  .wmodal-list{display:flex;flex-direction:column;gap:8px}
+  .wrow{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--line);border-radius:4px;
+    cursor:pointer;background:rgba(58,230,255,.03);transition:border-color .1s,background .1s}
+  .wrow:hover{border-color:var(--cyan);background:rgba(58,230,255,.1);box-shadow:var(--glow-c)}
+  .wrow img,.wrow .wrow-ic{width:30px;height:30px;flex:0 0 30px;border-radius:6px;object-fit:contain}
+  .wrow .wrow-ic{display:flex;align-items:center;justify-content:center;font-size:19px;background:rgba(164,107,255,.14)}
+  .wrow .wrow-nm{font-family:var(--font-display);font-size:10px;letter-spacing:1px;color:var(--ink)}
+  .wrow .wrow-sub{font-family:var(--font-term);font-size:15px;color:var(--dim);margin-left:auto;white-space:nowrap}
+  .wrow.wc-row:hover{border-color:var(--violet);background:rgba(164,107,255,.12);box-shadow:0 0 16px rgba(164,107,255,.5)}
+  .wmodal-foot{font-family:var(--font-term);font-size:15px;color:var(--dim);text-align:center;margin-top:12px;letter-spacing:.5px}
+  .foot .links a.sharex{cursor:pointer;color:var(--mag)}
+  .foot .links a.sharex:hover{color:var(--amber)}
+
   @media (prefers-reduced-motion: reduce){
     .ham,.crt.lines{animation:none}
     *{scroll-behavior:auto}
@@ -204,8 +267,27 @@
       <img class="ham" src="hamster-logo.webp" alt="Squeek Pot" />
       <div class="word">SQUEEK&nbsp;POT<small>NO-LOSS LOTTERY</small></div>
     </div>
-    <span id="netpill" class="pill">● not connected</span>
     <button id="connectBtn" class="cyan">Connect</button>
+    <div id="walletWrap" class="walletwrap" hidden>
+      <span id="netpill" class="pill ok" role="button" tabindex="0" aria-haspopup="true">● —</span>
+      <div id="walletMenu" class="wmenu" hidden role="menu">
+        <div id="switchBtn" class="wmi" role="menuitem" tabindex="0">⇄&nbsp; Switch wallet</div>
+        <div id="copyAddr" class="wmi" role="menuitem" tabindex="0">⧉&nbsp; Copy address</div>
+        <div id="disconnectBtn" class="wmi danger" role="menuitem" tabindex="0">⏻&nbsp; Disconnect</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- wallet selection modal: lists every detected wallet (EIP-6963) + WalletConnect -->
+  <div id="walletModal" class="wmodal" hidden>
+    <div class="wmodal-card" role="dialog" aria-modal="true" aria-label="Connect a wallet">
+      <div class="wmodal-head">
+        <span class="wmodal-title">CONNECT A WALLET</span>
+        <button id="wmodalClose" class="wmodal-x" aria-label="Close">✕</button>
+      </div>
+      <div id="walletList" class="wmodal-list"></div>
+      <div class="wmodal-foot">pick a wallet · you approve the connection inside it</div>
+    </div>
   </div>
 
   <div id="previewBanner" class="banner" hidden>
@@ -242,27 +324,6 @@
     <div id="boostBadge" style="display:none;margin-top:12px;padding:9px 12px;border-radius:10px;background:linear-gradient(90deg,rgba(255,60,182,.14),rgba(164,107,255,.14));border:1px solid rgba(255,60,182,.35);font-size:12.5px;font-weight:600;letter-spacing:.2px">🔥 <span style="color:#ff3cb6">GENESIS HOLDER</span> — <span id="boostPct">+20%</span> odds boost, applied at the draw</div>
   </div>
 
-  <!-- ACTIONS -->
-  <div class="grid g2" style="margin-bottom:16px">
-    <div class="panel">
-      <div class="label">DEPOSIT / WITHDRAW</div>
-      <input id="amtInput" inputmode="decimal" placeholder="amount of SQK" />
-      <div class="btnrow">
-        <button id="depositBtn">Deposit</button>
-        <button id="withdrawBtn" class="ghost">Withdraw</button>
-      </div>
-      <div class="hint">Min 1 SQK · withdraw 100% anytime</div>
-    </div>
-    <div class="panel">
-      <div class="label">PRIZE POOL</div>
-      <input id="fundInput" inputmode="decimal" placeholder="SQK to add to the prize" />
-      <div class="btnrow">
-        <button id="fundBtn" class="mag">Fund Prize</button>
-      </div>
-      <div class="hint">Sponsor the pot — anyone can top it up</div>
-    </div>
-  </div>
-
   <!-- THE DRAW -->
   <div class="panel" style="margin-bottom:16px">
     <div class="label"><span class="star">★</span> THE DRAW <span class="star">★</span></div>
@@ -275,14 +336,49 @@
     <div class="btnrow" style="margin-top:12px">
       <button id="spinBtn" class="mag" disabled>Spin the Wheel</button>
       <button id="settleBtn" class="cyan" disabled>Settle</button>
+      <button id="demoBtn" class="ghost demo" title="See a sample draw — no wallet or SQK needed">▶ Watch demo draw</button>
     </div>
     <div id="status" class="status">&nbsp;</div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="panel" style="margin-bottom:16px">
+    <div class="label">DEPOSIT / WITHDRAW</div>
+    <input id="amtInput" inputmode="decimal" placeholder="amount of SQK" />
+    <div class="btnrow">
+      <button id="depositBtn">Deposit</button>
+      <button id="withdrawBtn" class="ghost">Withdraw</button>
+    </div>
+    <div class="hint">Min 1 SQK · withdraw 100% anytime · the prize is seeded by the team now, staking yield soon</div>
   </div>
 
   <!-- PLAYERS -->
   <div class="panel" style="margin-bottom:16px">
     <div class="label">PLAYERS · <span id="pcount">0</span></div>
     <div id="players" class="players"></div>
+  </div>
+
+  <!-- HALL OF FAME + PRIZE HISTORY -->
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="panel">
+      <div class="label"><span class="star">★</span> HALL OF FAME <span class="star">★</span></div>
+      <div class="hofhead">
+        <div class="kv">DRAWS<b id="hofCount">—</b></div>
+        <div class="kv">TOTAL PAID<b id="hofPaid">—</b></div>
+      </div>
+      <div id="hof" class="hof"><div class="empty">loading past draws…</div></div>
+    </div>
+    <div class="panel">
+      <div class="label">PRIZE HISTORY</div>
+      <div class="hint" style="margin:-4px 0 10px">SQK paid out each draw</div>
+      <div class="chartwrap"><svg id="prizeChart" class="chart" viewBox="0 0 320 150" preserveAspectRatio="none" aria-label="prize per draw"></svg></div>
+    </div>
+  </div>
+
+  <!-- LIVE ACTIVITY -->
+  <div class="panel" style="margin-bottom:16px">
+    <div class="label">LIVE ACTIVITY</div>
+    <div id="ticker" class="ticker"><div class="empty">loading…</div></div>
   </div>
 
   <!-- HOW IT WORKS -->
@@ -322,6 +418,7 @@
     <div class="links">
       <a href="docs.html">DOCS</a>
       <a href="https://x.com/andreehoan" target="_blank" rel="noopener">X / TWITTER</a>
+      <a id="shareX" class="sharex" role="button" tabindex="0">⤴ SHARE ON X</a>
     </div>
     <span id="cfgline"></span><br/>
     no-loss lottery · chainlink vrf 2.5 · built for squeekchain genesis 🐹
@@ -675,6 +772,10 @@ const CONFIG = {
   rpc: "https://ethereum-sepolia-rpc.publicnode.com",
   pot: "0x2a86555598d4951d2dbfcb545e12e5aab06204d4",   // SqueekPot (hardened + Genesis NFT boost) — Sepolia, owner Main
   sqk: "0xd78a3956cf63164d1fa1c622ad3c66623162fa1e",   // staged-launch-1 SQK
+  deployBlock: 12076983,                                // pot deploy block — fromBlock for event history
+  // WalletConnect (mobile wallets). Free projectId from https://cloud.reown.com → paste it here.
+  // Left blank = injected/MetaMask only (the WalletConnect button stays hidden, no regression).
+  wcProjectId: "82cc90cd956bf2cb318281a04af70ffb",
 };
 const POT_ABI = [
   "function deposit(uint256) external","function withdraw(uint256) external","function fundPrize(uint256) external",
@@ -682,10 +783,15 @@ const POT_ABI = [
   "function prizeReserve() view returns (uint256)","function totalDeposits() view returns (uint256)",
   "function deposits(address) view returns (uint256)","function oddsOf(address) view returns (uint256)",
   "function timeUntilDraw() view returns (uint256)","function drawState() view returns (uint8)",
+  "function nextDrawTime() view returns (uint256)",
   "function lastWinner() view returns (address)","function lastPrize() view returns (uint256)",
   "function participantCount() view returns (uint256)","function getParticipants() view returns (address[])",
   "function canRequestDraw() view returns (bool)",
   "function holdsBoostNft(address) view returns (bool)","function boostBps() view returns (uint256)",
+  "event DrawSettled(uint256 indexed roundId, address indexed winner, uint256 prize)",
+  "event Deposited(address indexed user, uint256 amount, uint256 newBalance)",
+  "event Withdrew(address indexed user, uint256 amount, uint256 newBalance)",
+  "event PrizeFunded(address indexed funder, uint256 amount, uint256 newReserve)",
 ];
 const ERC20_ABI = [
   "function approve(address,uint256) returns (bool)","function allowance(address,address) view returns (uint256)",
@@ -693,7 +799,7 @@ const ERC20_ABI = [
 ];
 const STATE_NAME = ["◇ IDLE — pot is filling","◈ REQUESTED — rolling the dice…","★ READY — settle to reveal"];
 const $ = id => document.getElementById(id);
-let readProvider, read, sqkRead, signer, account, DEC = 18n, lastState = -1, spinning = false, showcase = false, scTarget = 0, shownPrize = 0;
+let readProvider, read, sqkRead, signer, account, DEC = 18n, lastState = -1, spinning = false, showcase = false, scTarget = 0, shownPrize = 0, drawTarget = 0;
 let hamSprite = { react(){} };   // roaming mascot; real one wired at boot
 
 function fmt(x, dp=2){
@@ -741,11 +847,12 @@ function renderShowcase(){
 /* ---- live reads ---- */
 async function refresh(){
   try{
-    const [prize, total, st, pc, parts, lastW, lastP] = await Promise.all([
+    const [prize, total, st, pc, parts, lastW, lastP, ndt] = await Promise.all([
       read.prizeReserve(), read.totalDeposits(), read.drawState(),
-      read.participantCount(), read.getParticipants(), read.lastWinner(), read.lastPrize()
+      read.participantCount(), read.getParticipants(), read.lastWinner(), read.lastPrize(), read.nextDrawTime()
     ]);
     showcase = false; $("previewBanner").hidden = true;
+    drawTarget = Number(ndt);   // absolute unix target; countdown ticks locally off this
     animatePrize(Number(ethers.formatUnits(prize, DEC)));
     $("drawstate").textContent = STATE_NAME[Number(st)] || "";
     $("pcount").textContent = pc.toString();
@@ -775,6 +882,7 @@ async function refresh(){
 
     if (Number(st)!==2 && lastState===2 && lastW && lastW!==ethers.ZeroAddress && !spinning){
       spinReel(rows.map(r=>r[0]), lastW, lastP);
+      loadHistory();   // a fresh winner just landed — update hall of fame / chart / ticker
     }
     lastState = Number(st);
   }catch(e){
@@ -831,11 +939,100 @@ function confetti(){
   }
 }
 
-/* ---- countdown ---- */
-async function tickCountdown(){
+/* ---- history: hall of fame + prize chart + live activity (from on-chain events) ---- */
+const _blockTime = new Map();
+async function blockTime(bn){
+  if(_blockTime.has(bn)) return _blockTime.get(bn);
+  try{ const b = await readProvider.getBlock(bn); const t = b?.timestamp||0; _blockTime.set(bn,t); return t; }
+  catch(e){ return 0; }
+}
+function ago(ts){
+  if(!ts) return "";
+  const s = Math.max(0, Math.floor(Date.now()/1000) - ts);
+  if(s<60) return s+"s"; if(s<3600) return Math.floor(s/60)+"m";
+  if(s<86400) return Math.floor(s/3600)+"h"; return Math.floor(s/86400)+"d";
+}
+async function loadHistory(){
+  if(!read) return;
+  try{
+    const from = CONFIG.deployBlock;
+    const [settled, deps, wds, funds] = await Promise.all([
+      read.queryFilter(read.filters.DrawSettled(), from, "latest"),
+      read.queryFilter(read.filters.Deposited(),   from, "latest"),
+      read.queryFilter(read.filters.Withdrew(),    from, "latest"),
+      read.queryFilter(read.filters.PrizeFunded(), from, "latest"),
+    ]);
+    renderHallOfFame(settled);
+    renderPrizeChart(settled);
+    await renderActivity([...settled, ...deps, ...wds, ...funds]);
+  }catch(e){ renderHistOffline(); }
+}
+function renderHallOfFame(events){
+  const box = $("hof"), me = account;
+  const rows = events.slice().sort((a,b)=> Number(b.args.roundId - a.args.roundId));
+  $("hofCount").textContent = rows.length.toString();
+  const paid = rows.reduce((a,e)=> a + e.args.prize, 0n);
+  $("hofPaid").textContent = fmt(paid)+" SQK";
+  if(!rows.length){ box.innerHTML = '<div class="empty">no draws yet — the first winner lands here 🏆</div>'; return; }
+  box.innerHTML = "";
+  for(const e of rows){
+    const w = e.args.winner, mine = me && w.toLowerCase()===me.toLowerCase();
+    const d = document.createElement("div"); d.className = "hofrow"+(mine?" me":"");
+    d.innerHTML = `<span><span class="rnd">#${e.args.roundId}</span> <span class="who">${short(w)}${mine?" (you)":""}</span></span><span class="prz">${fmt(e.args.prize)} SQK</span>`;
+    box.appendChild(d);
+  }
+}
+function renderPrizeChart(events){
+  const svg = $("prizeChart"), W=320, H=150, pad=8;
+  const rows = events.slice().sort((a,b)=> Number(a.args.roundId - b.args.roundId));
+  if(!rows.length){ svg.innerHTML = `<text x="160" y="78" text-anchor="middle" fill="#7a67a0" font-family="VT323,monospace" font-size="15">bars appear after the first draw</text>`; return; }
+  const vals = rows.map(e=> Number(ethers.formatUnits(e.args.prize, DEC)));
+  const max = Math.max(...vals, 1), n = vals.length, gap = 6;
+  const bw = Math.max(3, (W-2*pad-gap*Math.max(0,n-1))/n);
+  let out = "";
+  vals.forEach((v,i)=>{
+    const h = Math.max(2, (v/max)*(H-2*pad-14));
+    const x = pad + i*(bw+gap), y = H-pad-h;
+    out += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="#4dff7a" opacity="0.9"/>`;
+  });
+  svg.innerHTML = out;
+}
+const ACT = {
+  DrawSettled:{ic:"🏆",lbl:"won",     who:e=>e.args.winner,amt:e=>e.args.prize},
+  Deposited:  {ic:"🐹",lbl:"deposited",who:e=>e.args.user,  amt:e=>e.args.amount},
+  Withdrew:   {ic:"💧",lbl:"withdrew", who:e=>e.args.user,  amt:e=>e.args.amount},
+  PrizeFunded:{ic:"🎁",lbl:"funded",   who:e=>e.args.funder,amt:e=>e.args.amount},
+};
+async function renderActivity(events){
+  const box = $("ticker");
+  const rows = events.slice().sort((a,b)=> (b.blockNumber-a.blockNumber) || (b.index-a.index)).slice(0,14);
+  if(!rows.length){ box.innerHTML = '<div class="empty">no activity yet — deposit to kick it off 🐹</div>'; return; }
+  const times = await Promise.all([...new Set(rows.map(r=>r.blockNumber))].map(async bn=>[bn, await blockTime(bn)]));
+  const tmap = new Map(times);
+  box.innerHTML = "";
+  for(const e of rows){
+    const cfg = ACT[e.fragment?.name || e.eventName]; if(!cfg) continue;
+    const who = cfg.who(e), me = account && who.toLowerCase()===account.toLowerCase();
+    const d = document.createElement("div"); d.className="tickrow";
+    d.innerHTML = `<span class="ic">${cfg.ic}</span><span class="ta">${short(who)}${me?" (you)":""}</span> <span>${cfg.lbl}</span><span class="tv">${fmt(cfg.amt(e))} SQK</span><span class="tt">${ago(tmap.get(e.blockNumber))}</span>`;
+    box.appendChild(d);
+  }
+}
+function renderHistOffline(){
+  $("hof").innerHTML = '<div class="empty">connect to Sepolia to load past draws</div>';
+  $("ticker").innerHTML = '<div class="empty">connect to Sepolia to load activity</div>';
+  renderPrizeChart([]);
+}
+function shareOnX(){
+  const text = "I'm in the Squeek Pot 🐹 — a no-loss daily lottery on Squeekchain. Deposit SQK, never lose it, win the whole pot.";
+  window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent("https://sqkpot.xyz")+"&via=andreehoan","_blank","noopener");
+}
+
+/* ---- countdown — ticks LOCALLY every second off a cached target (re-synced each refresh) ---- */
+function tickCountdown(){
   let secs;
   if (showcase){ secs = Math.max(0, scTarget - Math.floor(Date.now()/1000)); }
-  else { try{ secs = Number(await read.timeUntilDraw()); }catch(e){ return; } }
+  else { if(!drawTarget) return; secs = Math.max(0, drawTarget - Math.floor(Date.now()/1000)); }
   const h=String(Math.floor(secs/3600)).padStart(2,"0");
   const m=String(Math.floor((secs%3600)/60)).padStart(2,"0");
   const s=String(secs%60).padStart(2,"0");
@@ -848,22 +1045,139 @@ function potWrite(){ return new ethers.Contract(CONFIG.pot, POT_ABI, signer); }
 function sqkWrite(){ return new ethers.Contract(CONFIG.sqk, ERC20_ABI, signer); }
 function parseAmt(v){ if(!v||isNaN(Number(v))||Number(v)<=0) throw new Error("enter a valid amount"); return ethers.parseUnits(v, DEC); }
 
-async function connect(){
-  if (!window.ethereum){ setStatus("no wallet found — install MetaMask"); return; }
+/* ---- EIP-6963: discover EVERY injected wallet so the user can actually choose one ---- */
+const injectedWallets = new Map();   // rdns -> { info, provider }
+window.addEventListener("eip6963:announceProvider", (e)=>{
+  const d = e.detail; if (!d || !d.info || !d.info.rdns || !d.provider) return;
+  injectedWallets.set(d.info.rdns, d);
+  if (!$("walletModal").hidden) renderWalletList();   // modal already open → refresh live
+});
+window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function openWalletModal(){ renderWalletList(); $("walletModal").hidden = false; }
+function closeWalletModal(){ $("walletModal").hidden = true; }
+function renderWalletList(){
+  const list = $("walletList"); if(!list) return; list.innerHTML = "";
+  // 1) every EIP-6963 injected wallet, each selectable by its own name + icon
+  for (const { info, provider } of injectedWallets.values()){
+    const row = document.createElement("div"); row.className = "wrow";
+    row.innerHTML = '<img alt="" src="'+esc(info.icon||"")+'" />'
+      + '<span class="wrow-nm">'+esc(info.name||"Wallet")+'</span><span class="wrow-sub">detected</span>';
+    const img = row.querySelector("img");
+    if (img) img.onerror = ()=>{ const d=document.createElement("div"); d.className="wrow-ic"; d.textContent="👛"; img.replaceWith(d); };
+    row.onclick = ()=>{ closeWalletModal(); connectInjected(provider); };
+    list.appendChild(row);
+  }
+  // 2) legacy window.ethereum (only when nothing announced via 6963)
+  if (window.ethereum && injectedWallets.size === 0){
+    const row = document.createElement("div"); row.className = "wrow";
+    row.innerHTML = '<div class="wrow-ic">👛</div><span class="wrow-nm">Browser Wallet</span><span class="wrow-sub">detected</span>';
+    row.onclick = ()=>{ closeWalletModal(); connectInjected(window.ethereum); };
+    list.appendChild(row);
+  }
+  // 3) WalletConnect — mobile wallets via QR / deep link
+  const wc = document.createElement("div"); wc.className = "wrow wc-row";
+  wc.innerHTML = '<div class="wrow-ic">📱</div><span class="wrow-nm">WalletConnect</span>'
+    + '<span class="wrow-sub">'+(CONFIG.wcProjectId ? "mobile · QR" : "setup needed")+'</span>';
+  wc.onclick = ()=>{ closeWalletModal(); connectWC(); };
+  list.appendChild(wc);
+  // 4) nothing available at all
+  if (injectedWallets.size === 0 && !window.ethereum && !CONFIG.wcProjectId){
+    const hint = document.createElement("div"); hint.className = "wmodal-foot";
+    hint.textContent = "No wallet detected — install a browser wallet, or enable WalletConnect for mobile.";
+    list.appendChild(hint);
+  }
+}
+
+let activeEip1193 = null;
+async function finishConnect(eip1193){
+  const bp = new ethers.BrowserProvider(eip1193);
+  const net = await bp.getNetwork();
+  if (Number(net.chainId) !== CONFIG.chainId){
+    try{ await eip1193.request({method:"wallet_switchEthereumChain",params:[{chainId:CONFIG.chainHex}]}); }
+    catch(e){ setStatus("switch your wallet to Sepolia"); return false; }
+  }
+  signer = await bp.getSigner(); account = await signer.getAddress();
+  activeEip1193 = eip1193;
+  $("netpill").innerHTML = "● "+short(account)+' <span class="caret">▾</span>'; $("netpill").className="pill ok";
+  $("connectBtn").hidden = true; $("walletWrap").hidden = false; closeWalletMenu(); closeWalletModal();
+  if (eip1193.on && !eip1193._sqkWired){          // wire change events once per provider
+    eip1193._sqkWired = true;
+    eip1193.on("accountsChanged", onAccountsChanged);
+    eip1193.on("chainChanged", onChainChanged);
+    eip1193.on("disconnect", ()=>disconnect());
+  }
+  try{ DEC = await sqkRead.decimals(); }catch(e){}
+  refresh(); loadHistory();
+  return true;
+}
+function onAccountsChanged(accs){
+  if (!account) return;                                       // only react while connected via our UI
+  if (!accs || accs.length===0){ disconnect(); return; }      // wallet locked / permission revoked
+  if (accs[0].toLowerCase() !== account.toLowerCase()) finishConnect(activeEip1193);  // switched → update in place (no reload)
+}
+function onChainChanged(){ if (account && activeEip1193) finishConnect(activeEip1193); }  // re-check network
+// Force the wallet's account picker so a re-login / switch feels like a fresh session.
+async function pickAccount(prov){
+  const p = prov || window.ethereum;
+  if (!p?.request) return;
+  try{ await p.request({ method:"wallet_requestPermissions", params:[{ eth_accounts:{} }] }); }
+  catch(e){ if (e && e.code===4001) throw e; }   // user rejected → abort; method unsupported → fall through to eth_requestAccounts
+}
+// "Connect" now opens a picker listing EVERY detected wallet (EIP-6963) + WalletConnect.
+function connect(){ openWalletModal(); }
+async function connectInjected(provider){
   try{
-    const bp = new ethers.BrowserProvider(window.ethereum);
-    await bp.send("eth_requestAccounts", []);
-    const net = await bp.getNetwork();
-    if (Number(net.chainId) !== CONFIG.chainId){
-      try{ await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CONFIG.chainHex}]}); }
-      catch(e){ setStatus("switch your wallet to Sepolia"); return; }
-    }
-    signer = await bp.getSigner(); account = await signer.getAddress();
-    $("netpill").textContent = "● "+short(account); $("netpill").className="pill ok";
-    $("connectBtn").textContent = "Connected";
-    try{ DEC = await sqkRead.decimals(); }catch(e){}
-    refresh();
+    await pickAccount(provider);                   // always show the account selector (fresh-session feel)
+    await provider.request({ method:"eth_requestAccounts", params:[] });
+    await finishConnect(provider);
   }catch(e){ setStatus(e.shortMessage||e.message||String(e)); }
+}
+// Switch wallet / account: reopen the picker (WalletConnect first drops its session for a fresh QR).
+async function switchWallet(){
+  if (wcProvider){ await disconnect(); }
+  openWalletModal();
+}
+function closeWalletMenu(){ const m=$("walletMenu"); if(m) m.hidden = true; const p=$("netpill"); if(p) p.setAttribute("aria-expanded","false"); }
+function toggleWalletMenu(){ const m=$("walletMenu"); if(!m) return; m.hidden = !m.hidden; $("netpill").setAttribute("aria-expanded", String(!m.hidden)); }
+function copyAddress(){ if(!account){ return closeWalletMenu(); } try{ navigator.clipboard?.writeText(account); setStatus("address copied ✓"); }catch(e){} closeWalletMenu(); }
+let wcProvider = null;
+async function connectWC(){
+  if (!CONFIG.wcProjectId){ setStatus("WalletConnect isn't set up yet — use a browser wallet above"); return; }
+  try{
+    setStatus("opening WalletConnect…");
+    const { EthereumProvider } = await import("https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.0/+esm");
+    wcProvider = await EthereumProvider.init({
+      projectId: CONFIG.wcProjectId,
+      chains: [CONFIG.chainId],
+      optionalChains: [CONFIG.chainId],
+      showQrModal: true,
+      rpcMap: { [CONFIG.chainId]: CONFIG.rpc },
+      metadata: { name:"Squeek Pot", description:"No-loss SQK lottery on Squeekchain",
+                  url:"https://sqkpot.xyz", icons:["https://sqkpot.xyz/hamster-logo.webp"] },
+    });
+    await wcProvider.connect();
+    await finishConnect(wcProvider);
+  }catch(e){ setStatus("WalletConnect: "+(e.shortMessage||e.message||String(e)).slice(0,100)); }
+}
+async function disconnect(){
+  const wc = wcProvider, eip = activeEip1193;
+  // Clear state + UI SYNCHRONOUSLY first, so any wallet event firing during the async
+  // teardown below sees account=null and no-ops (prevents the "both buttons show" race).
+  wcProvider = null; signer = null; account = null; activeEip1193 = null;
+  $("walletWrap").hidden = true; closeWalletMenu();
+  $("connectBtn").hidden = false; $("connectBtn").textContent = "Connect"; $("connectBtn").onclick = connect;
+  $("myDep").textContent="—"; $("myOdds").textContent="—"; $("myBal").textContent="—"; $("myTix").textContent="—";
+  $("boostBadge").style.display="none";
+  $("spinBtn").disabled=true; $("settleBtn").disabled=true;
+  setStatus("disconnected");
+  refresh(); loadHistory();   // re-render, dropping the "you" highlights
+  // async teardown — can't affect the already-settled UI
+  try{ if (wc && wc.disconnect) await wc.disconnect(); }catch(e){}
+  if (eip && eip !== wc && eip.request){   // revoke on the injected provider so next login is a fresh picker (EIP-2255)
+    try{ await eip.request({ method:"wallet_revokePermissions", params:[{ eth_accounts:{} }] }); }catch(e){}
+  }
 }
 async function tx(fnLabel, fn){
   if (!signer){ setStatus("connect your wallet first"); return; }
@@ -878,20 +1192,23 @@ async function doDeposit(){
   await tx("depositing", ()=>potWrite().deposit(amt));
 }
 const doWithdraw = ()=>{ let a; try{a=parseAmt($("amtInput").value);}catch(e){return setStatus(e.message);} tx("withdrawing",()=>potWrite().withdraw(a)); };
-async function doFund(){ let a; try{a=parseAmt($("fundInput").value);}catch(e){return setStatus(e.message);}
-  if(!signer) return setStatus("connect your wallet first");
-  const erc=sqkWrite(); const cur=await erc.allowance(account, CONFIG.pot);
-  if (cur < a){ await tx("approving SQK", ()=>erc.approve(CONFIG.pot, ethers.MaxUint256)); }
-  await tx("funding prize", ()=>potWrite().fundPrize(a)); }
 
 /* ---- boot ---- */
 $("connectBtn").onclick = connect;
 $("depositBtn").onclick = doDeposit;
 $("withdrawBtn").onclick = doWithdraw;
-$("fundBtn").onclick = doFund;
 $("spinBtn").onclick = ()=>{ if(showcase) return demoSpin(); tx("requesting draw", ()=>potWrite().requestDraw()); };
 $("settleBtn").onclick = ()=>tx("settling draw", ()=>potWrite().settleDraw());
-if (window.ethereum){ window.ethereum.on?.("accountsChanged",()=>location.reload()); window.ethereum.on?.("chainChanged",()=>location.reload()); }
+$("demoBtn").onclick = demoSpin;
+$("shareX").onclick = shareOnX;
+$("wmodalClose").onclick = closeWalletModal;
+$("walletModal").onclick = (e)=>{ if (e.target === $("walletModal")) closeWalletModal(); };
+document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeWalletModal(); });
+$("netpill").onclick = (e)=>{ e.stopPropagation(); toggleWalletMenu(); };
+$("switchBtn").onclick = ()=>{ closeWalletMenu(); switchWallet(); };
+$("copyAddr").onclick = copyAddress;
+$("disconnectBtn").onclick = ()=>{ closeWalletMenu(); disconnect(); };
+document.addEventListener("click", ()=> closeWalletMenu());   // click-away closes the account menu
 
 readProvider = new ethers.JsonRpcProvider(CONFIG.rpc, CONFIG.chainId);
 read = new ethers.Contract(CONFIG.pot, POT_ABI, readProvider);
@@ -899,8 +1216,10 @@ sqkRead = new ethers.Contract(CONFIG.sqk, ERC20_ABI, readProvider);
 
 refresh();
 tickCountdown();
+loadHistory();
 setInterval(refresh, 15000);
 setInterval(tickCountdown, 1000);
+setInterval(loadHistory, 60000);
 
 /* ---- roaming cartoon hamster mascot (ChatGPT sticker as a sprite) ---- */
 hamSprite = (function(){
