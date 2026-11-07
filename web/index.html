@@ -400,7 +400,7 @@
     <div class="ca">
       <div class="carow">
         <div class="caname">SQUEEK POT <span class="catag">the pot — deposits, draws &amp; payouts</span></div>
-        <div class="caval"><a href="https://sepolia.etherscan.io/address/0xb10f936e25458aea8f5a62a130b8f5cdd898ebcc" target="_blank" rel="noopener">0xb10f936e25458aea8f5a62a130b8f5cdd898ebcc <span class="arrow">↗</span></a></div>
+        <div class="caval"><a href="https://sepolia.etherscan.io/address/0x2a86555598d4951d2dbfcb545e12e5aab06204d4" target="_blank" rel="noopener">0x2a86555598d4951d2dbfcb545e12e5aab06204d4 <span class="arrow">↗</span></a></div>
       </div>
       <div class="carow">
         <div class="caname">SQK TOKEN <span class="catag">the token you deposit</span></div>
@@ -770,9 +770,9 @@ const ethers = window.ethers;
 const CONFIG = {
   chainId: 11155111, chainHex: "0xaa36a7",
   rpc: "https://ethereum-sepolia-rpc.publicnode.com",
-  pot: "0xb10f936e25458aea8f5a62a130b8f5cdd898ebcc",   // SqueekPot (hardened; immutable VRF coordinator, no setCoordinator) — Sepolia, owner Main
+  pot: "0x2a86555598d4951d2dbfcb545e12e5aab06204d4",   // SqueekPot (hardened + Genesis NFT boost) — Sepolia, owner Main
   sqk: "0xd78a3956cf63164d1fa1c622ad3c66623162fa1e",   // staged-launch-1 SQK
-  deployBlock: 12082627,                                // pot deploy block — fromBlock for event history
+  deployBlock: 12076983,                                // pot deploy block — fromBlock for event history
   // WalletConnect (mobile wallets). Free projectId from https://cloud.reown.com → paste it here.
   // Left blank = injected/MetaMask only (the WalletConnect button stays hidden, no regression).
   wcProjectId: "82cc90cd956bf2cb318281a04af70ffb",

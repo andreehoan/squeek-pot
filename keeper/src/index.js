@@ -11,7 +11,7 @@
 
 import { ethers } from "ethers";
 
-const POT = "0xb10f936e25458aea8f5a62a130b8f5cdd898ebcc"; // SqueekPot (hardened; immutable VRF coordinator), Sepolia
+const POT = "0x2a86555598d4951d2dbfcb545e12e5aab06204d4"; // SqueekPot (hardened + NFT boost), Sepolia
 const CHAIN_ID = 11155111;
 const POT_ABI = [
   "function canRequestDraw() view returns (bool)",
